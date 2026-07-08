@@ -20,7 +20,7 @@
   "content_scripts": [{
     "matches": ["https://fraidyc.at/s/*"],
     "js": ["js/index.js"],
-    "css": ["css/fraidy.scss"],
+    "css": ["css/fraidy.css"],
     "all_frames": true
   }, {
     "matches": ["*://*/*"],
@@ -29,7 +29,7 @@
     "all_frames": true
   }],
   "web_accessible_resources": [{
-    "resources": ["popup.html", "offscreen.html", "js/index.js", "css/fraidy.scss", "fonts/*", "images/*"],
+    "resources": ["popup.html", "offscreen.html", "js/index.js", "css/fraidy.css", "fonts/*", "images/*"],
     "matches": ["<all_urls>"]
   }],
   "background": {

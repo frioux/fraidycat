@@ -1,102 +1,138 @@
-$emoji-fonts: "Twemoji Mozilla", "Segoe UI Emoji", "Segoe UI Symbol", "Segoe UI", "Apple Color Emoji", "Noto Color Emoji", "EmojiOne Color", "Android Emoji";
-$themes: (
-  light: (
-    pattern: url('../images/fc-light.png'),
-    background: #F7F7E7,
-    backmute: #FCFCF3,
-    plain: #000000,
-    link: #0000EE,
-    visited: #AA8844,
-    color: #662200,
-    hover: #007799,
-    title: #888866,
-    latest: #FFEFD5,
-    span: #555533,
-    tab: #FFDDCC,
-    titleold: #007777,
-    latestold: #559999,
-    spanold: #337799,
-    tabold: #CCDDDD,
-    titlefresh: #003333,
-    latestfresh: #118844,
-    spanfresh: #559900,
-    tabfresh: #AADDBB,
-    border: #FFAA99,
-    button: #EECCAA,
-    rule: #CCCC77,
-    paper: #FFFFFF,
-    sparkfreshline: #FF0099,
-    sparkfreshfill: #FFC0CB,
-    sparkoldline: #9999BB,
-    sparkoldfill: #ACC0CB,
-    notice: #997755,
-    progress: #DDDDCC,
-    edge: #99999999
-  ),
-  dark: (
-    pattern: url('../images/fc-dark.png'),
-    background: #080818,
-    backmute: #181818,
-    plain: #FFEEEE,
-    link: #DDFFFF,
-    visited: #AAAAAA,
-    color: #CCEEEE,
-    hover: #EEFF33,
-    title: #CCBBBB,
-    latest: #000000,
-    span: #887777,
-    tab: #003333,
-    titleold: #CCDDAA,
-    latestold: #779955,
-    spanold: #779955,
-    tabold: #AADDBB,
-    titlefresh: #FFCCCC,
-    latestfresh: #EE77BB,
-    spanfresh: #EE77BB,
-    tabfresh: #FF99DD,
-    border: #005566,
-    button: #003F34,
-    rule: #005566,
-    paper: #550022,
-    sparkfreshline: #00FFFF,
-    sparkfreshfill: #003F34,
-    sparkoldline: #BB9999,
-    sparkoldfill: #2B2C10,
-    notice: #7799AA,
-    progress: #997755,
-    edge: #000000
-  ),
-);
+/*
+ * Theme palette. The root <div> always carries a .theme--auto|light|dark
+ * class (see view.js), and custom properties inherit, so every rule below
+ * just reads var(--x) and picks up the active theme automatically.
+ */
+:root {
+  --emoji: "Twemoji Mozilla", "Segoe UI Emoji", "Segoe UI Symbol", "Segoe UI", "Apple Color Emoji", "Noto Color Emoji", "EmojiOne Color", "Android Emoji";
+}
 
-$theme-map: null;
+.theme--auto,
+.theme--light {
+  --background: #F7F7E7;
+  --backmute: #FCFCF3;
+  --plain: #000000;
+  --link: #0000EE;
+  --visited: #AA8844;
+  --color: #662200;
+  --hover: #007799;
+  --title: #888866;
+  --latest: #FFEFD5;
+  --span: #555533;
+  --tab: #FFDDCC;
+  --titleold: #007777;
+  --latestold: #559999;
+  --spanold: #337799;
+  --tabold: #CCDDDD;
+  --titlefresh: #003333;
+  --latestfresh: #118844;
+  --spanfresh: #559900;
+  --tabfresh: #AADDBB;
+  --border: #FFAA99;
+  --button: #EECCAA;
+  --rule: #CCCC77;
+  --paper: #FFFFFF;
+  --sparkfreshline: #FF0099;
+  --sparkfreshfill: #FFC0CB;
+  --sparkoldline: #9999BB;
+  --sparkoldfill: #ACC0CB;
+  --notice: #997755;
+  --progress: #DDDDCC;
+  --edge: #99999999;
+  --backmute-fade: rgba(252, 252, 243, 0);
+  --paper-fade: rgba(255, 255, 255, 0);
+}
 
-@mixin themed() {
-  @each $theme, $map in $themes {
-    $theme-map: map-get($themes, $theme) !global;
-    @if $theme == light {
-      .theme--auto & {
-        @content;
-      }
-    } @else {
-      @media (prefers-color-scheme: #{$theme}) {
-        .theme--auto & {
-          @content;
-        }
-      }
-    }
-    .theme--#{$theme} & {
-      @content;
-    }
+@media (prefers-color-scheme: dark) {
+  .theme--auto {
+  --background: #080818;
+  --backmute: #181818;
+  --plain: #FFEEEE;
+  --link: #DDFFFF;
+  --visited: #AAAAAA;
+  --color: #CCEEEE;
+  --hover: #EEFF33;
+  --title: #CCBBBB;
+  --latest: #000000;
+  --span: #887777;
+  --tab: #003333;
+  --titleold: #CCDDAA;
+  --latestold: #779955;
+  --spanold: #779955;
+  --tabold: #AADDBB;
+  --titlefresh: #FFCCCC;
+  --latestfresh: #EE77BB;
+  --spanfresh: #EE77BB;
+  --tabfresh: #FF99DD;
+  --border: #005566;
+  --button: #003F34;
+  --rule: #005566;
+  --paper: #550022;
+  --sparkfreshline: #00FFFF;
+  --sparkfreshfill: #003F34;
+  --sparkoldline: #BB9999;
+  --sparkoldfill: #2B2C10;
+  --notice: #7799AA;
+  --progress: #997755;
+  --edge: #000000;
+  --backmute-fade: rgba(24, 24, 24, 0);
+  --paper-fade: rgba(85, 0, 34, 0);
   }
 }
 
-@function t($key) {
-  @return map-get($theme-map, $key);
+.theme--dark {
+  --background: #080818;
+  --backmute: #181818;
+  --plain: #FFEEEE;
+  --link: #DDFFFF;
+  --visited: #AAAAAA;
+  --color: #CCEEEE;
+  --hover: #EEFF33;
+  --title: #CCBBBB;
+  --latest: #000000;
+  --span: #887777;
+  --tab: #003333;
+  --titleold: #CCDDAA;
+  --latestold: #779955;
+  --spanold: #779955;
+  --tabold: #AADDBB;
+  --titlefresh: #FFCCCC;
+  --latestfresh: #EE77BB;
+  --spanfresh: #EE77BB;
+  --tabfresh: #FF99DD;
+  --border: #005566;
+  --button: #003F34;
+  --rule: #005566;
+  --paper: #550022;
+  --sparkfreshline: #00FFFF;
+  --sparkfreshfill: #003F34;
+  --sparkoldline: #BB9999;
+  --sparkoldfill: #2B2C10;
+  --notice: #7799AA;
+  --progress: #997755;
+  --edge: #000000;
+  --backmute-fade: rgba(24, 24, 24, 0);
+  --paper-fade: rgba(85, 0, 34, 0);
+}
+
+/* Background pattern per theme. (A url() can't live in a custom property
+ * because Parcel can't resolve the relative path from the use site.) */
+.theme--auto article,
+.theme--light article {
+  background-image: url('../images/fc-light.png');
+}
+@media (prefers-color-scheme: dark) {
+  .theme--auto article {
+    background-image: url('../images/fc-dark.png');
+  }
+}
+.theme--dark article {
+  background-image: url('../images/fc-dark.png');
 }
 
 html {
   overflow-y: scroll;
-  font-family: $emoji-fonts;
+  font-family: var(--emoji);
 }
 
 body {
@@ -128,19 +164,19 @@ ul {
 article {
   /* max-width: 780px; */
   padding: 20px 40px 60px 40px;
-  font-family: 'Inria Sans', $emoji-fonts;
+  font-family: 'Inria Sans', var(--emoji);
   font-size: 1.1rem;
   min-height: 100%;
 
-  @include themed() {
-    background: t('pattern') no-repeat;
-    color: t('plain');
-    background-color: t('background');
+  
+    background-repeat: no-repeat;
+    color: var(--plain);
+    background-color: var(--background);
 
     a {
-      color: t('link');
+      color: var(--link);
     }
-  }
+  
 }
 
 header {
@@ -217,20 +253,20 @@ div.intro {
   overflow: hidden;
   white-space: nowrap;
 
-  @include themed() {
-    color: t('notice');
+  
+    color: var(--notice);
     div.progress {
       margin: 4px 10px;
       height: 6px;
-      background-color: t('progress');
+      background-color: var(--progress);
 
       div {
         width: 0;
-        background-color: t('notice');
+        background-color: var(--notice);
         height: 100%;
       }
     }
-  }
+  
 
   p {
     display: inline;
@@ -260,9 +296,9 @@ div.intro {
       padding: 2px 12px;
       cursor: pointer;
 
-      @include themed() {
-        background: t('backmute');
-        border-bottom: dotted 1px t('rule');
+      
+        background: var(--backmute);
+        border-bottom: dotted 1px var(--rule);
 
         &:hover,
         &.focus {
@@ -270,21 +306,21 @@ div.intro {
         }
 
         &.focus {
-          border: solid 2px t('spanold');
-          box-shadow: 4px 4px t('spanold');
+          border: solid 2px var(--spanold);
+          box-shadow: 4px 4px var(--spanold);
         }
 
         div.trunc ol.title:after {
-          background-image: linear-gradient(to right, rgba(t('backmute'), 0), t('backmute') 90%);
+          background-image: linear-gradient(to right, var(--backmute-fade), var(--backmute) 90%);
         }
 
         &:hover {
-          background-color: t('paper') !important;
-          border: solid 2px t('plain') !important;
-          box-shadow: 4px 4px t('plain') !important;
+          background-color: var(--paper) !important;
+          border: solid 2px var(--plain) !important;
+          box-shadow: 4px 4px var(--plain) !important;
 
           div.trunc ol.title:after {
-            background-image: linear-gradient(to right, rgba(t('paper'), 0), t('paper') 90%);
+            background-image: linear-gradient(to right, var(--paper-fade), var(--paper) 90%);
           }
         }
 
@@ -296,10 +332,10 @@ div.intro {
           position: absolute;
           left: -32px;
           bottom: 100%;
-          background: t('paper');
-          color: t('sparkfreshline');
-          border: solid 1px t('sparkfreshline');
-          box-shadow: 4px 3px 0 0 t('progress');
+          background: var(--paper);
+          color: var(--sparkfreshline);
+          border: solid 1px var(--sparkfreshline);
+          box-shadow: 4px 3px 0 0 var(--progress);
           margin-bottom: 8px;
           margin-right: -50vw;
           max-height: 200px;
@@ -309,11 +345,11 @@ div.intro {
           display: none;
 
           span.ago {
-            color: t('latestfresh');
+            color: var(--latestfresh);
             font-size: 0.9rem;
           }
         }
-      }
+      
     }
 
     &:last-child {
@@ -347,10 +383,10 @@ div.intro {
       float: left;
     }
 
-    @include themed() {
+    
       button {
-        background-color: t('tab');
-        border: solid 1px t('border');
+        background-color: var(--tab);
+        border: solid 1px var(--border);
         border-radius: 4px;
         font-size: 1.7rem;
         padding: 1px 6px 4px 6px;
@@ -358,21 +394,21 @@ div.intro {
 
         &.age-m,
         &.age-h {
-          background-color: t('tabfresh');
+          background-color: var(--tabfresh);
         }
 
         &.age-d,
         &.age-w {
-					background-color: t('tabold');
+					background-color: var(--tabold);
         }
       }
 
 			&.show > h2 > button {
 				box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3), 0 2px rgba(255, 255, 255, 0.1);
-				background-color: t('progress');
+				background-color: var(--progress);
 				padding: 4px 6px 1px 6px;
 			}
-    }
+    
 
     & > ul {
       position: absolute;
@@ -382,10 +418,10 @@ div.intro {
       margin-left: 22px;
       font-size: 1.5rem;
 
-      @include themed() {
-        border: solid 1px t('progress');
-        background: t('paper');
-      }
+      
+        border: solid 1px var(--progress);
+        background: var(--paper);
+      
 
       li {
         position: relative;
@@ -400,41 +436,41 @@ div.intro {
           color: transparent;
         }
 
-        @include themed() {
+        
           &:hover {
-            background-color: t('tab');
+            background-color: var(--tab);
           }
 
           &.age-m:hover,
           &.age-h:hover {
-            background-color: t('tabfresh');
+            background-color: var(--tabfresh);
           }
 
           &.age-d:hover,
           &.age-w:hover {
-            background-color: t('tabold');
+            background-color: var(--tabold);
           }
 
           &.age-m:after,
           &.age-h:after {
             content: "\2726";
-            color: t('latestfresh');
-            text-shadow: -1px -1px 0 t('paper'), 1px -1px 0 t('paper'), -1px 1px 0 t('paper'), 1px 1px 0 t('paper');
+            color: var(--latestfresh);
+            text-shadow: -1px -1px 0 var(--paper), 1px -1px 0 var(--paper), -1px 1px 0 var(--paper), 1px 1px 0 var(--paper);
           }
 
           &.age-d:after,
           &.age-w:after {
             content: "\25cf";
-            color: t('latestold');
-            text-shadow: -1px -1px 0 t('paper'), 1px -1px 0 t('paper'), -1px 1px 0 t('paper'), 1px 1px 0 t('paper');
+            color: var(--latestold);
+            text-shadow: -1px -1px 0 var(--paper), 1px -1px 0 var(--paper), -1px 1px 0 var(--paper), 1px 1px 0 var(--paper);
           }
 
           span {
-            border: solid 4px t('border');
-            background-color: t('border');
+            border: solid 4px var(--border);
+            background-color: var(--border);
             border-bottom: 0;
           }
-        }
+        
 
         a {
           text-decoration: none;
@@ -460,23 +496,23 @@ div.intro {
       display: none;
       z-index: 4;
 
-      @include themed() {
-        background-color: t('paper');
-        border: solid 1px t('border');
-        box-shadow: 4px 3px 0 0 t('border');
+      
+        background-color: var(--paper);
+        border: solid 1px var(--border);
+        box-shadow: 4px 3px 0 0 var(--border);
 
         svg {
-          stroke: t('border');
+          stroke: var(--border);
         }
 
         .sep {
-          border-bottom: solid 1px t('border');
+          border-bottom: solid 1px var(--border);
         }
 
         li > a:hover {
-          background-color: t('latest');
+          background-color: var(--latest);
         }
-      }
+      
 
       ul {
         list-style: none;
@@ -526,9 +562,9 @@ div.intro {
 			margin-right: 6px;
 
 			a {
-				@include themed() {
-					color: t('color');
-				}
+				
+					color: var(--color);
+				
 			}
 
 			&.active {
@@ -568,9 +604,9 @@ div.intro {
       white-space: nowrap;
       margin: 4px 4px -6px 4px;
 
-      @include themed() {
-        color: t('notice');
-      }
+      
+        color: var(--notice);
+      
     }
 
     span, a.url {
@@ -596,45 +632,45 @@ div.intro {
     text-decoration: none;
   }
 
-  @include themed() {
+  
     .latest {
-      background-color: t('notice');
-      color: t('latest');
+      background-color: var(--notice);
+      color: var(--latest);
     }
 
     .status-live {
       border-radius: 4px;
-      background-color: t('latest');
-      color: t('sparkfreshline');
-      border: solid 1px t('sparkfreshline');
+      background-color: var(--latest);
+      color: var(--sparkfreshline);
+      border: solid 1px var(--sparkfreshline);
       margin: 0 8px 0 4px;
 
       &.show {
-        background-color: t('sparkfreshline');
-        color: t('latest');
+        background-color: var(--sparkfreshline);
+        color: var(--latest);
       }
     }
 
     li.age-d,
     li.age-w {
       h3 .url {
-        color: t('titleold');
+        color: var(--titleold);
       }
       .latest {
-        background-color: t('latestold');
+        background-color: var(--latestold);
       }
     }
 
     li.age-m,
     li.age-h {
       h3 .url {
-        color: t('titlefresh');
+        color: var(--titlefresh);
       }
       .latest {
-        background-color: t('latestfresh');
+        background-color: var(--latestfresh);
       }
     }
-  }
+  
 
 
   a.favicon {
@@ -646,10 +682,10 @@ div.intro {
       margin: 6px 6px -6px 0px;
       object-fit: scale-down;
 
-      @include themed() {
-        background-color: t('button');
-        border: solid 2px t('button');
-      }
+      
+        background-color: var(--button);
+        border: solid 2px var(--button);
+      
     }
   }
 
@@ -669,15 +705,15 @@ div.intro {
             text-decoration: none;
           }
 
-          @include themed() {
-            color: t('color');
-          }
+          
+            color: var(--color);
+          
         }
 
         a:visited {
-          @include themed() {
-            color: t('visited');
-          }
+          
+            color: var(--visited);
+          
         }
 
         span.author::before {
@@ -690,30 +726,30 @@ div.intro {
 
         a:hover {
           text-decoration: underline;
-          @include themed() {
-            color: t('hover');
-          }
+          
+            color: var(--hover);
+          
         }
 
-        @include themed() {
+        
           a:visited {
-            color: t('visited');
+            color: var(--visited);
           }
 
           span.author {
-            color: t('title');
+            color: var(--title);
           }
 
           span.ago {
             margin-left: 8px;
             font-size: 0.9rem;
-            color: t('span');
+            color: var(--span);
           }
 
           &.age-d,
           &.age-w {
             span.ago {
-              color: t('spanold');
+              color: var(--spanold);
               font-weight: bold;
             }
           }
@@ -721,20 +757,20 @@ div.intro {
           &.age-m,
           &.age-h {
             span.ago {
-              color: t('spanfresh');
+              color: var(--spanfresh);
               font-weight: bold;
             }
           }
-        }
+        
       }
     }
 
   }
 
   div.trunc {
-    @include themed() {
+    
       color: #975;
-    }
+    
 
     ol.title {
       display: inline-block;
@@ -761,9 +797,9 @@ div.intro {
         &::after {
           content: " \002756\0000a0";
 
-          @include themed() {
-            color: t('button');
-          }
+          
+            color: var(--button);
+          
         }
 
         &:last-child::after {
@@ -783,17 +819,17 @@ div.intro {
     }
   }
 
-  @include themed() {
+  
     .sparkline-d {
-      stroke: t('sparkfreshline');
-      fill: t('sparkfreshfill');
+      stroke: var(--sparkfreshline);
+      fill: var(--sparkfreshfill);
     }
 
     .sparkline-w {
-      stroke: t('sparkoldline');
-      fill: t('sparkoldfill'); /* rgba(255, 192, 203, .3); */
+      stroke: var(--sparkoldline);
+      fill: var(--sparkoldfill); /* rgba(255, 192, 203, .3); */
     }
-  }
+  
 }
 
 @media only screen and (min-width: 600px) {
@@ -822,12 +858,12 @@ div.intro {
     cursor: col-resize;
     z-index: 2;
 
-    @include themed() {
+    
       &.resizing,
       &:hover {
-        background-color: t('background');
+        background-color: var(--background);
       }
-    }
+    
   }
 
   div.contents {
@@ -883,12 +919,12 @@ div.intro {
     pre,
     blockquote,
     div.embed.text {
-      @include themed() {
-        border: solid 2px t('rule');
-        box-shadow: 4px 4px 0 0 t('rule');
+      
+        border: solid 2px var(--rule);
+        box-shadow: 4px 4px 0 0 var(--rule);
         margin: 0 0 2px 0;
         padding: 18px 24px;
-      }
+      
     }
 
     div.inner > *:first-child,
@@ -956,24 +992,24 @@ div.intro {
     }
   }
 
-  @include themed() {
-    box-shadow: -6px 0 6px 0 t('edge');
-    background-color: t('paper');
+  
+    box-shadow: -6px 0 6px 0 var(--edge);
+    background-color: var(--paper);
 
     h4 a {
-      color: t('plain');
+      color: var(--plain);
       text-decoration: none;
     }
 
     span.ago {
       font-size: 0.8rem;
-      color: t('span');
+      color: var(--span);
     }
 
     div.age-d,
     div.age-w {
       span.ago {
-        color: t('spanold');
+        color: var(--spanold);
         font-weight: bold;
       }
     }
@@ -981,11 +1017,11 @@ div.intro {
     div.age-m,
     div.age-h {
       span.ago {
-        color: t('spanfresh');
+        color: var(--spanfresh);
         font-weight: bold;
       }
     }
-  }
+  
 
   #nextPage {
     text-align: center;
@@ -1062,9 +1098,9 @@ span.author {
   float: left;
   font-weight: bold;
 
-  @include themed() {
-    color: t('titlefresh');
-  }
+  
+    color: var(--titlefresh);
+  
 }
 
 span.author::before {
@@ -1081,9 +1117,9 @@ label {
   display: block;
   margin: 8px 0;
 
-  @include themed() {
-    color: t('color');
-  }
+  
+    color: var(--color);
+  
 }
 
 label.optional {
@@ -1096,10 +1132,10 @@ input, textarea, select {
   box-sizing: border-box;
   border: 1px solid #999;
 
-  @include themed() {
-    color: t('plain');
-    background-color: t('paper');
-  }
+  
+    color: var(--plain);
+    background-color: var(--paper);
+  
 }
 
 select#importance {
@@ -1111,7 +1147,7 @@ input, textarea {
 }
 
 input, textarea, select, button {
-  font-family: "Inria Sans", $emoji-fonts;
+  font-family: "Inria Sans", var(--emoji);
 }
 
 input[type="checkbox"] {

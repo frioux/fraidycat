@@ -7,7 +7,7 @@ import { hyperload } from './hyperload'
 
 import follows from './follows'
 import views from './view'
-import '../css/fraidy.scss'
+import '../css/fraidy.css'
 
 const {state, actions, view} = hyperload({
   modules: {follows},
