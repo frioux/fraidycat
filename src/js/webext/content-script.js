@@ -1,5 +1,4 @@
-import 'regenerator-runtime/runtime'
-import { parseDom, xpathDom } from '../util' 
+import { parseDom, xpathDom } from '../util'
 import { jsonDateParser } from "json-date-parser"
 
 const browser = require('webextension-polyfill')

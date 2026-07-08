@@ -1,7 +1,6 @@
 //
 // src/offscreen.js
 //
-import 'regenerator-runtime/runtime'
 const mixin = require('./js/storage')
 const storage = require('./js/storage-platform')
 

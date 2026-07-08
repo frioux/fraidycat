@@ -4,7 +4,6 @@
 //
 import { h, app } from 'hyperapp'
 import { hyperload } from './hyperload'
-import 'regenerator-runtime/runtime'
 
 import follows from './follows'
 import views from './view'
