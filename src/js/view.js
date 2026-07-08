@@ -694,9 +694,6 @@ export default (state, actions) => {
           <Route render={settings ? ChangeSettings : ListFollow} />
         </Switch>
       </section>
-      <footer>
-        <p>&nbsp;</p>
-      </footer>
     </article>
   </div>
 }
