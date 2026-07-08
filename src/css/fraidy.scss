@@ -540,7 +540,7 @@ div.intro {
     }
   }
 
-  .follow > h3, div.extra {
+  .follow > h3 {
     position: relative;
     z-index: 2;
     pointer-events: none;
@@ -548,6 +548,12 @@ div.intro {
     a {
       pointer-events: auto;
     }
+  }
+
+  div.extra {
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
   }
 
   .follow > h3 {
@@ -638,6 +644,7 @@ div.intro {
 
     & > img {
       margin: 6px 6px -6px 0px;
+      object-fit: scale-down;
 
       @include themed() {
         background-color: t('button');
@@ -650,14 +657,6 @@ div.intro {
     font-size: 1.1rem;
     margin: 6px 0 6px 41px;
     padding-left: 30px;
-
-    .enter {
-      display: none;
-    }
-
-    .close {
-      display: inline;
-    }
 
     ol.title {
       li {
@@ -730,41 +729,11 @@ div.intro {
       }
     }
 
-    a.collapse {
-      user-select: none;
-      display: block;
-      position: absolute;
-      top: 0;
-      left: 0;
-      border-radius: 7px;
-      font-weight: bold;
-      font-size: 14px;
-      baseline-shift: -3px;
-      text-decoration: none;
-      padding: 0px 6px 0 4px;
-      margin: 2px 3px;
-      overflow: hidden;
-
-      @include themed() {
-        svg {
-          padding-top: 2px;
-          stroke: t('rule');
-        }
-      }
-    }
   }
 
   div.trunc {
     @include themed() {
       color: #975;
-    }
-
-    .enter {
-      display: inline;
-    }
-
-    .close {
-      display: none;
     }
 
     ol.title {

@@ -6,6 +6,8 @@ if (process.env.STORAGE === 'dat') {
   storage = require('./webext/storage')
 } else if (process.env.STORAGE === 'frontend') {
   storage = require('./frontend/storage')
+} else if (process.env.STORAGE === 'mock') {
+  storage = require('./mock/storage')
 } else if (typeof (process.versions.electron) === 'string') {
   storage = require('./electron/storage')
 }

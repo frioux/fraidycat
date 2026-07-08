@@ -480,7 +480,15 @@ const ListFollow = ({ location, match }) => ({follows}, actions) => {
           let dk = timeDarkness(lastPostAt, now)
           let id = `follow-${follow.id}`
           let viewUrl = `/view/${follow.id}?tag=${encodeURIComponent(tag)}&importance=${encodeURIComponent(imp)}`
-          return <li class={`follow ${dk || 'age-X'} ${match.params.id === follow.id ? 'focus' : ''}`} onclick={e => e.target.name === id && actions.location.go(viewUrl)}>
+          return <li class={`follow ${dk || 'age-X'} ${match.params.id === follow.id ? 'focus' : ''}`}
+            onclick={e => {
+              // A click anywhere on the row's background toggles the post list.
+              // Links (post titles, favicon, title, etc.) navigate as usual.
+              if (follow.fetchesContent || e.target.closest('a, button, input, video, audio'))
+                return
+              let extra = e.target.closest('li.follow').querySelector('.extra')
+              if (extra) extra.classList.toggle('trunc')
+            }}>
             <a name={id}></a>
             <Link to={viewUrl} class="favicon">
               <img src={Favicon(follow)}
@@ -491,7 +499,7 @@ const ListFollow = ({ location, match }) => ({follows}, actions) => {
               <Link class="ext" to={follow.url} target="_blank"><img src={new URL('../images/link.svg', import.meta.url)} width="16" target="_blank" /></Link>
               {follow.status instanceof Array && follow.status.map(st =>
                 <a class={`status status-${st.type}`} oncreate={ToggleHover} href={st.url || follow.url} target="_blank"
-                  >{st.type === 'live' ? <span><img src={new URL('../images/rec.svg', import.meta.url)} width="12" /> LIVE</span> : <span><img src={new URL('../images/notepad.svg')} width="16" /></span>}
+                  >{st.type === 'live' ? <span><img src={new URL('../images/rec.svg', import.meta.url)} width="12" /> LIVE</span> : <span><img src={new URL('../images/notepad.svg', import.meta.url)} width="16" /></span>}
                   <div>{st.title || st.text || html2text(st.html || '')}
                     {st[sortPosts] && <span class="ago">{timeAgo(st[sortPosts], now)}</span>}</div>
                 </a>)}

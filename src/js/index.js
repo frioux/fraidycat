@@ -19,3 +19,11 @@ const {state, actions, view} = hyperload({
 
 const {initialize} = app(state, actions, view, document.getElementById('fraidy'))
 initialize()
+
+// In the dev harness, Hyperapp mounts its view once, so Parcel's default
+// hot-swap leaves the running app calling stale handlers. Force a full page
+// reload on any change instead. (module.hot is undefined in production builds,
+// so this is stripped from the extension bundle.)
+if (typeof module !== 'undefined' && module.hot) {
+  module.hot.decline()
+}
