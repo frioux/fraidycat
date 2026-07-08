@@ -15,11 +15,11 @@
   },
   "version": "2.0.0",
   "scripts": {
-    "build": "pnpm run build:frontend && pnpm run build:desktop && node ./src/package.js build/desktop",
+    "build": "npm run build:frontend && npm run build:desktop && node ./src/package.js build/desktop",
     "build:desktop": "fsbin emptyDir build/desktop && cross-env esbuild src/js/server/main.js migrations/00_initial.js --bundle --platform=node --external:electron --external:sqlite3 --outdir=build/desktop",
     "build:frontend": "fsbin emptyDir build/frontend && cross-env STORAGE=frontend parcel build src/index.html --target frontend",
     "dev": "cross-env STORAGE=mock parcel serve src/dev.html --target frontend --port 4321",
-    "start": "pnpm run build:frontend && node ./src/js/server/main.js",
+    "start": "npm run build:frontend && node ./src/js/server/main.js",
     "start:firefox": "web-ext run --source-dir ./build/webext/",
     "test": "ava",
     "webext": "fsbin emptyDir build/webext && cross-env STORAGE=webext parcel build --target webext --config @parcel/config-webextension --no-cache --no-source-maps --no-content-hash",
