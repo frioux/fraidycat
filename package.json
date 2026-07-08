@@ -2,9 +2,6 @@
   "name": "fraidycat",
   "description": "Follow blogs, wikis, YouTube, Twitter, Reddit, Instagram and the like... from a distance.",
   "homepage": "https://fraidyc.at/",
-  "bin": {
-    "fraidycat-server": "src/js/server/main.js"
-  },
   "productName": "Fraidycat",
   "author": {
     "name": "Kicks Condor",
@@ -15,30 +12,18 @@
   },
   "version": "2.0.0",
   "scripts": {
-    "build": "npm run build:frontend && npm run build:desktop && node ./src/package.js build/desktop",
-    "build:desktop": "fsbin emptyDir build/desktop && cross-env esbuild src/js/server/main.js migrations/00_initial.js --bundle --platform=node --external:electron --external:sqlite3 --outdir=build/desktop",
-    "build:frontend": "fsbin emptyDir build/frontend && cross-env STORAGE=frontend parcel build src/index.html --target frontend",
     "dev": "cross-env STORAGE=mock parcel serve src/dev.html --target frontend --port 4321",
-    "start": "npm run build:frontend && node ./src/js/server/main.js",
-    "start:firefox": "web-ext run --source-dir ./build/webext/",
     "test": "ava",
     "webext": "fsbin emptyDir build/webext && cross-env STORAGE=webext parcel build --target webext --config @parcel/config-webextension --no-cache --no-source-maps --no-content-hash",
-    "webext:lint": "web-ext lint --source-dir ./build/webext/",
-    "webext:safe": "find build/webext -type f -name '*.js' | xargs sed -i='' -e 's/Function(\"return this\")/function(){return this}/g' -e 's/\\([=: {]\\)Function(/\\1(function(){return function(){}})(/g'"
+    "webext:lint": "web-ext lint --source-dir ./build/webext/"
   },
   "targets": {
-    "desktop": {
-      "distDir": "build/desktop",
-      "context": "node",
-      "optimize": false,
-      "includeNodeModules": true
-    },
     "frontend": {
       "distDir": "build/frontend",
       "scopeHoist": false,
       "optimize": false,
       "engines": {
-        "browsers": "> 0.5%, last 2 versions, not dead"
+        "browsers": "chrome >= 116"
       }
     },
     "webext": {
@@ -50,59 +35,17 @@
       }
     }
   },
-  "assets": [
-    {
-      "source": "build/frontend/**/*"
-    },
-    {
-      "source": "src/images/flatcat-*.{png,ico}",
-      "dir": "src/js/server/images"
-    },
-    {
-      "source": "node_modules/uWebSockets.js/uws_${platform}_${arch}_${vmod}.node",
-      "dir": "src/js/server"
-    },
-    {
-      "source": "node_modules/systray/traybin/tray_${platform_full}_release*",
-      "dir": "src/js/traybin"
-    },
-    {
-      "source": "node_modules/7zip/7zip-lite/7z.*",
-      "dir": "src/js/server/7zip-lite",
-      "platform": "win"
-    },
-    {
-      "source": "node_modules/node-pre-gyp/**/*"
-    },
-    {
-      "source": "node_modules/sqlite3/**/*"
-    }
-  ],
   "browserslist": "chrome >= 116",
   "dependencies": {
-    "@kickscondor/granax": "^3.2.9",
     "@xmldom/xmldom": "^0.7.5",
     "domify": "^1.4.1",
-    "electron-fetch": "^1.7.4",
-    "esbuild": "^0.13.10",
     "fraidyscrape": "^1.0.16",
     "json-date-parser": "^1.0.1",
-    "needle": "^3.0.0",
     "normalize-url": "^7.0.2",
-    "open": "^8.2.1",
     "opml-generator": "^1.1.1",
-    "pg-hstore": "^2.3.4",
     "regenerator-runtime": "^0.13.9",
-    "rotating-file-stream": "^2.1.6",
-    "selfsigned": "^1.10.11",
-    "sqlite3": "^5.0.2",
-    "systray": "^1.0.5",
     "twemoji": "^13.1.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#binaries",
     "xpath": "^0.0.32"
-  },
-  "darwinDependencies": {
-    "appdmg": "^0.6.2"
   },
   "devDependencies": {
     "@babel/core": "^7.15.5",
@@ -115,22 +58,16 @@
     "@parcel/transformer-sass": "2.13.3",
     "ava": "^3.15.0",
     "cross-env": "^7.0.3",
-    "decompress": "^4.2.1",
     "ent": "^2.2.0",
     "events": "^3.3.0",
-    "fast-glob": "^3.2.7",
     "fast-json-patch": "^3.1.0",
     "fsbin": "^1.0.11",
     "hyperapp": "^1.2.10",
-    "koalaesce": "^0.6.5",
     "parcel": "2.13.3",
-    "pkg": "github:geekuillaume/pkg",
     "process": "^0.11.10",
     "sass": "^1.39.2",
-    "sequelize": "^6.6.5",
     "stream-browserify": "^3.0.0",
     "svgo": "^3.3.3",
-    "umzug": "^2.3.0",
     "url": "^0.11.4",
     "web-ext": "^4.3.0",
     "webextension-polyfill": "^0.12.0"

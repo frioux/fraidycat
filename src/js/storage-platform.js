@@ -1,15 +1,9 @@
 let storage = null
 
-if (process.env.STORAGE === 'dat') {
-  storage = require('./dat/storage')
-} else if (process.env.STORAGE === 'webext') {
-  storage = require('./webext/storage')
-} else if (process.env.STORAGE === 'frontend') {
-  storage = require('./frontend/storage')
-} else if (process.env.STORAGE === 'mock') {
+if (process.env.STORAGE === 'mock') {
   storage = require('./mock/storage')
-} else if (typeof (process.versions.electron) === 'string') {
-  storage = require('./electron/storage')
+} else {
+  storage = require('./webext/storage')
 }
 
 console.log(`STORAGE = ${process.env.STORAGE}`)

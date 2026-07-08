@@ -9,10 +9,6 @@ const url = require('url')
 const sparkline = require('./sparkline')
 import u from '@kickscondor/umbrellajs'
 
-const CAN_ARCHIVE = (process.env.STORAGE === 'dat')
-const IS_WEBEXT = (process.env.STORAGE === 'webext')
-
-
 const FormFreeze = (e) => {
   e.preventDefault()
   u('button', e.target).each(ele => ele.disabled = true)
@@ -461,7 +457,7 @@ const ListFollow = ({ location, match }) => ({follows}, actions) => {
           <li><Setting name="mode-expand" value="all">Expand All</Setting></li>
           <li class="dark-mode"><Setting name="mode-theme" value="dark">Dark Mode</Setting></li>
           <li class="light-mode"><Setting name="mode-theme" value="light">Light Mode</Setting></li>
-          {IS_WEBEXT && <li><Setting name="mode-tab" value="_blank">Open In New Tab</Setting></li>}
+          <li><Setting name="mode-tab" value="_blank">Open In New Tab</Setting></li>
         </ul>
       </div>
     </div>
@@ -632,17 +628,6 @@ const ChangeSettings = ({ match, setup }) => (state, {follows}) => {
     </div>
     </form>
   </div>
-}
-
-if (process.env.STORAGE === 'electron') {
-  window.addEventListener('mouseover', e => {
-    if (e.target.nodeName === "A" && e.target.href && e.target.host !== window.location.host) {
-      u('footer p').text(e.target.href)
-      u('footer').addClass('show')
-    }
-  })
-  window.addEventListener('mouseout', e =>
-    e.target.nodeName === "A" && u('footer').removeClass('show'))
 }
 
 export default (state, actions) => {

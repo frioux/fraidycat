@@ -1,9 +1,6 @@
 import { location } from "@kickscondor/router"
 
-let locationOpts = {}
-if (process.env.STORAGE !== 'dat') {
-  locationOpts = {hashRouting: true}
-}
+let locationOpts = {hashRouting: true}
 
 export const hyperload = tree => {
   const modules = {}

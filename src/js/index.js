@@ -1,9 +1,7 @@
 //
-// Fraidycat uses Hyperapp V1. I use my own module system (in hyperload.js)
-// and a forked router (@kickscondor/router). This allows me to use the same
-// code for Beaker Browser and the web extension.
+// Fraidycat uses Hyperapp V1, with a small module system (in hyperload.js)
+// and a forked router (@kickscondor/router).
 //
-import './environment'
 import { h, app } from 'hyperapp'
 import { hyperload } from './hyperload'
 import 'regenerator-runtime/runtime'

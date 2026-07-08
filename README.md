@@ -107,18 +107,18 @@ actually refetched if they haven't changed.
 
 ### Building the Thing
 
-If you're checking out the code from Github, make sure you've installed
-[git-lfs](https://git-lfs.github.com) first. Then, clone normally.
-
-Then, to build the app, use:
+Fraidycat 2 ships as a browser extension (Chrome/Firefox, Manifest V3).
+Clone the repo, then:
 
     npm install
-    npm run build
+    npm run webext
 
-To force building a package for a different platform, pass in the platform
-name through the `PLATFORM` environment variable.
+The unpacked extension is written to `build/webext`. In Chrome, visit
+`chrome://extensions`, enable "Developer mode", and "Load unpacked" that
+directory. To lint the build, run `npm run webext:lint`.
 
-    PLATFORM=win npm run build
+For UI work without loading the extension, `npm run dev` serves a hot-reloading
+harness (backed by mock storage) at http://localhost:4321.
 
 ### License
 
