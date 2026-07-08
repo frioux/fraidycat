@@ -10,5 +10,6 @@ node_modules/
 
 # Temp
 .cache/
+.parcel-cache/
 build/
 dist/

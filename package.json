@@ -21,7 +21,7 @@
     "start": "pnpm run build:frontend && node ./src/js/server/main.js",
     "start:firefox": "web-ext run --source-dir ./build/webext/",
     "test": "ava",
-    "webext": "fsbin emptyDir build/webext && cross-env STORAGE=webext parcel build src/manifest.json --no-cache --no-source-maps --dist-dir build/webext",
+    "webext": "fsbin emptyDir build/webext && cross-env STORAGE=webext parcel build --target webext --config @parcel/config-webextension --no-cache --no-source-maps --no-content-hash",
     "webext:lint": "web-ext lint --source-dir ./build/webext/",
     "webext:safe": "find build/webext -type f -name '*.js' | xargs sed -i='' -e 's/Function(\"return this\")/function(){return this}/g' -e 's/\\([=: {]\\)Function(/\\1(function(){return function(){}})(/g'"
   },
@@ -38,6 +38,14 @@
       "optimize": false,
       "engines": {
         "browsers": "> 0.5%, last 2 versions, not dead"
+      }
+    },
+    "webext": {
+      "distDir": "build/webext",
+      "source": "src/manifest.json",
+      "scopeHoist": false,
+      "engines": {
+        "browsers": "chrome >= 116"
       }
     }
   },
@@ -69,7 +77,7 @@
       "source": "node_modules/sqlite3/**/*"
     }
   ],
-  "browserslist": "firefox >= 57, chrome >= 49",
+  "browserslist": "chrome >= 116",
   "dependencies": {
     "@kickscondor/granax": "^3.2.9",
     "@xmldom/xmldom": "^0.7.5",
@@ -101,23 +109,29 @@
     "@kickscondor/emoji-button": "^2.1.4",
     "@kickscondor/router": "^0.7.3",
     "@kickscondor/umbrellajs": "^3.1.2",
-    "@parcel/transformer-image": "^2.0.0-rc.0",
-    "@parcel/transformer-sass": "^2.0.0-rc.0",
+    "@parcel/config-webextension": "2.13.3",
+    "@parcel/transformer-image": "2.13.3",
+    "@parcel/transformer-sass": "2.13.3",
     "ava": "^3.15.0",
     "cross-env": "^7.0.3",
     "decompress": "^4.2.1",
     "ent": "^2.2.0",
+    "events": "^3.3.0",
     "fast-glob": "^3.2.7",
     "fast-json-patch": "^3.1.0",
     "fsbin": "^1.0.11",
     "hyperapp": "^1.2.10",
     "koalaesce": "^0.6.5",
-    "parcel": "^2.0.0-rc.0",
+    "parcel": "2.13.3",
     "pkg": "github:geekuillaume/pkg",
+    "process": "^0.11.10",
     "sass": "^1.39.2",
     "sequelize": "^6.6.5",
+    "stream-browserify": "^3.0.0",
+    "svgo": "^3.3.3",
     "umzug": "^2.3.0",
+    "url": "^0.11.4",
     "web-ext": "^4.3.0",
-    "webextension-polyfill": "^0.6.0"
+    "webextension-polyfill": "^0.12.0"
   }
 }

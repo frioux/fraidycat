@@ -5,7 +5,7 @@ import { jsonDateParser } from "json-date-parser"
 const browser = require('webextension-polyfill')
 const fraidyscrape = require('fraidyscrape')
 
-let extURL = browser.extension.getURL('/').replace(/\/$/, '')
+let extURL = browser.runtime.getURL('/').replace(/\/$/, '')
 
 async function scrapeMessage(data, options = null) {
   let scraper = new fraidyscrape(options ? JSON.parse(options, jsonDateParser) : {}, parseDom, xpathDom)

@@ -229,24 +229,27 @@ module.exports = {
   },
 
   parsePost(str) {
-    let frag = false
     str = str.trim()
     if (str[0] !== '<') {
-      frag = true
       str = "<div>" + str + "</div>"
     }
     let doc = this.dom(str, 'text/html')
-    if (frag) {
-      let docf = doc.createDocumentFragment()
-      let cn = doc.childNodes[0].firstChild
-      while (cn) {
-        let sib = cn.nextSibling
-        docf.appendChild(cn)
-        cn = sib
-      }
-      return docf
+    //
+    // Always hand back a document fragment of the parsed nodes rather than
+    // the document itself. Parsing as text/html wraps the content in
+    // <html><head/><body>...</body></html>; if `sanitize` is later asked to
+    // unwrap the <html> element while it sits directly under the document,
+    // the native DOM refuses ("Only one element on document allowed"). A
+    // fragment has no such restriction.
+    //
+    let docf = doc.createDocumentFragment()
+    let cn = doc.childNodes[0].firstChild
+    while (cn) {
+      let sib = cn.nextSibling
+      docf.appendChild(cn)
+      cn = sib
     }
-    return doc
+    return docf
   },
 
   sanitizePost(post) {

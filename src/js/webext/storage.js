@@ -3,22 +3,42 @@
 // webextension-polyfill, which acts as a common API between Firefox and
 // Chrome.)
 //
+// Under Manifest V3, this class runs in two sorts of places:
+//
+//  * The offscreen document (src/offscreen.js) - the background, where
+//    feeds are fetched and scraped. Offscreen documents may only use
+//    runtime messaging, so every other browser API call here goes
+//    through the `proxy` method, which asks the service worker
+//    (src/background.js) to make the call.
+//  * The Fraidycat page itself - the content script on
+//    https://fraidyc.at/s/* and the settings page - which only uses
+//    `client` and `command` to talk to the background.
+//
 import { jsonDateParser } from "json-date-parser"
 import { fixupHeaders, parseDom, xpathDom } from '../util'
 const browser = require("webextension-polyfill")
 const frago = require('../frago')
-const path = require('path')
 const homepage = 'https://fraidyc.at/s/'
 
 const FIREFOX_QUOTA_BYTES_PER_ITEM = 8192;
 
 class WebextStorage {
   constructor(id) {
-    this.id = id 
+    this.id = id
     this.dom = parseDom
     this.baseHref = browser.runtime.getURL ?
       browser.runtime.getURL('/').slice(0, -1) : ''
     this.xpath = xpathDom
+  }
+
+  //
+  // Ask the service worker to make a browser API call on our behalf.
+  //
+  async proxy(fn, ...args) {
+    let res = await browser.runtime.sendMessage({fc: 'proxy', fn, args})
+    if (res && res.error)
+      throw new Error(res.error)
+    return res && res.result
   }
 
   //
@@ -36,8 +56,30 @@ class WebextStorage {
   // I/O functions.
   //
   async fetch(url, options) {
+    let custom = {}
+    if (options && options.headers) {
+      for (let k of ['User-Agent', 'Cookie']) {
+        if (options.headers[k])
+          custom[k] = options.headers[k]
+      }
+    }
     let req = new Request(url, fixupHeaders(options, ['Cookie', 'User-Agent']))
-    return fetch(req)
+    if (Object.keys(custom).length === 0)
+      return fetch(req)
+
+    //
+    // A fetch can't set these headers itself - a declarativeNetRequest
+    // rule (added by the service worker) rewrites them for this one URL
+    // while the fetch is under way.
+    //
+    let ruleId = null
+    try {
+      ruleId = await this.proxy('dnr.addHeaderRule', url, custom)
+      return await fetch(req)
+    } finally {
+      if (ruleId)
+        this.proxy('dnr.removeRule', ruleId).catch(() => {})
+    }
   }
 
   async render(req, tasks) {
@@ -62,7 +104,8 @@ class WebextStorage {
     let tasks = this.scraper.detect(url)
     let id = tasks.queue.shift()
     let site = this.scraper.options[id]
-    return browser.tabs.sendMessage(tabId, {req: this.encode({url, tasks, site}), options: this.socialJson}).
+    return this.proxy('tabs.sendMessage', tabId,
+      {req: this.encode({url, tasks, site}), options: this.socialJson}).
       then(resp => {
         let obj = this.decode(resp)
         obj.site = id
@@ -79,8 +122,8 @@ class WebextStorage {
   }
 
   async localGet(path, def) {
-    return browser.storage.local.
-      get(path).then(items => {
+    return this.proxy('storage.local.get', path).
+      then(items => {
         let obj = items[path]
         if (typeof(obj) === 'string')
           obj = this.decode(obj)
@@ -89,13 +132,12 @@ class WebextStorage {
   }
 
   async localSet(path, data) {
-    return browser.storage.local.
-      set({[path]: this.encode(data)})
+    return this.proxy('storage.local.set', {[path]: this.encode(data)})
   }
 
   async readFile(path, raw) {
     return new Promise((resolve, reject) => {
-      browser.storage.local.get(path).then(items => {
+      this.proxy('storage.local.get', path).then(items => {
           let obj = items[path]
           if (typeof(obj) === 'string' && !raw)
             obj = this.decode(obj)
@@ -110,11 +152,11 @@ class WebextStorage {
   async writeFile(path, data, raw) {
     if (!raw)
       data = this.encode(data)
-    return browser.storage.local.set({[path]: data})
+    return this.proxy('storage.local.set', {[path]: data})
   }
 
   async deleteFile(path) {
-    return browser.storage.local.remove(path)
+    return this.proxy('storage.local.remove', path)
   }
 
   //
@@ -133,7 +175,7 @@ class WebextStorage {
   //
   async readSynced(subkey) {
     return new Promise((resolve, reject) => {
-      browser.storage.sync.get(null).then(items =>
+      this.proxy('storage.sync.get', null).then(items =>
         resolve(this.mergeSynced(items, subkey)))
     })
   }
@@ -154,7 +196,7 @@ class WebextStorage {
         if (k.length + kv[k].length > FIREFOX_QUOTA_BYTES_PER_ITEM) {
           throw "QUOTA_BYTES_PER_ITEM quota exceeded."
         }
-        return browser.storage.sync.set({...kv, id})
+        return this.proxy('storage.sync.set', {...kv, id})
       })
       delete items[subkey]
       delete items.index
@@ -167,29 +209,38 @@ class WebextStorage {
     }
     if (len > 0) {
       items.id = id
-      await browser.storage.sync.set(items)
+      await this.proxy('storage.sync.set', items)
     }
   }
 
   //
   // Messaging functions.
   //
+  // Messages from the Fraidycat page arrive wrapped in a {fc: 'server'}
+  // envelope: the service worker receives them from the content script
+  // and relays them here (creating this document first, if Chrome hasn't
+  // yet). The tab they came from rides along as `tabId`.
+  //
   server(fn) {
-    browser.runtime.onMessage.addListener(async (msg, sender) => {
-      if (sender.tab) {
-        msg.sender = sender.tab.id
+    browser.runtime.onMessage.addListener((msg) => {
+      if (msg && msg.fc === 'server' && msg.action) {
+        let req = {action: msg.action, sender: msg.tabId}
         if (msg.data)
-          msg.data = this.decode(msg.data)
-        fn(msg)
+          req.data = this.decode(msg.data)
+        fn(req)
       }
-      return true
     })
   }
 
   async client(fn) {
-    browser.runtime.onMessage.addListener(async (msg) => {
-      fn(this.decode(msg))
-      return true
+    browser.runtime.onMessage.addListener((msg) => {
+      //
+      // Updates from the background arrive as encoded strings (through
+      // tabs.sendMessage) - anything else on this channel is extension
+      // plumbing (proxy calls, relays) meant for other listeners.
+      //
+      if (typeof(msg) === 'string')
+        fn(this.decode(msg))
     })
   }
 
@@ -201,7 +252,7 @@ class WebextStorage {
 
   sendUpdate(data, tabs) {
     for (let id of tabs) {
-      browser.tabs.sendMessage(id, this.encode(data))
+      this.proxy('tabs.sendMessage', id, this.encode(data)).catch(() => {})
     }
   }
 
@@ -209,28 +260,42 @@ class WebextStorage {
     if (receiver) {
       this.sendUpdate(data, [receiver])
     } else {
-      browser.tabs.query({url: homepage}).then(tabs =>
-        this.sendUpdate(data, tabs.map(x => x.id)))
+      this.proxy('tabs.query', {url: homepage}).then(tabs =>
+        this.sendUpdate(data, tabs.map(x => x.id))).catch(() => {})
     }
   }
 
   //
-  // Called once to initialize the background script
+  // Called once to initialize the background (offscreen) document.
   //
   backgroundSetup() {
-    browser.storage.onChanged.addListener((dict, area) => {
-      if (area !== "sync" || !('id' in dict))
+    //
+    // Events forwarded by the service worker - offscreen documents can't
+    // subscribe to these themselves.
+    //
+    browser.runtime.onMessage.addListener((msg) => {
+      if (!msg || msg.fc !== 'event')
         return
+      if (msg.name === 'storage.sync.onChanged') {
+        let dict = msg.changes
+        if (!('id' in dict))
+          return
 
-      // Only handle messages from other IDs.
-      let sender = this.decode(dict.id.newValue)
-      if (sender[0] === this.id)
-        return
+        // Only handle messages from other IDs.
+        let sender = this.decode(dict.id.newValue)
+        if (sender[0] === this.id)
+          return
 
-      let changes = {}
-      for (let path in dict)
-        changes[path] = dict[path].newValue
-      this.onSync(changes)
+        let changes = {}
+        for (let path in dict)
+          changes[path] = dict[path].newValue
+        this.onSync(changes)
+      } else if (msg.name === 'tabs.onUpdated') {
+        this.detectFeed(msg.url, msg.tabId)
+      } else if (msg.name === 'webRequest.onCompleted') {
+        if (this.scraper)
+          this.onRender(msg.url)
+      }
     })
 
     window.addEventListener('message', e => {
@@ -238,94 +303,32 @@ class WebextStorage {
       this.scraper.updateWatch(url, tasks, error)
     }, false)
 
-    let extUrl = browser.extension.getURL("/")
-    let rewriteUserAgentHeader = e => {
-      // console.log(e)
-      let initiator = e.initiator || e.originUrl
-      if (e.tabId === -1 && initiator && extUrl && (initiator + "/").startsWith(extUrl)) {
-        let hdrs = [], ua = null
-        for (var header of e.requestHeaders) {
-          let name = header.name.toLowerCase()
-          if (name === "x-fc-user-agent") {
-            ua = header
-          } else if (name !== "user-agent") {
-            hdrs.push(header)
-          }
-        }
-
-        if (ua !== null) {
-          hdrs.push({name: 'User-Agent', value: ua.value})
-          return {requestHeaders: hdrs}
-        }
-      }
-      return {requestHeaders: e.requestHeaders}
-    }
-
     //
-    // Open Fraidycat if the extension icon or the "Follow" icon is clicked.
+    // Reload any open Fraidycat tabs, so they hook up with this fresh
+    // background.
     //
-    browser.browserAction.onClicked.addListener(tab => {
-      browser.tabs.create({url: homepage})
-    })
+    this.proxy('tabs.query', {url: homepage}).then(tabs =>
+      tabs.map(x => this.proxy('tabs.reload', x.id))).catch(() => {})
+  }
 
-    // browser.pageAction.onClicked.addListener(tab => {
-    //   browser.tabs.create({url: homepage + "#!/add?url=" +
-    //     encodeURIComponent(tab.url)})
-    // })
-
-    browser.webRequest.onBeforeSendHeaders.addListener(rewriteUserAgentHeader,
-      {urls: ["<all_urls>"], types: ["xmlhttprequest"]}, ["blocking", "requestHeaders"])
-
-    let headersRecvFn = e => {
-      let initiator = e.initiator || e.originUrl
-      let headers = e.responseHeaders
-      if (e.tabId === -1 && initiator && extUrl && (initiator + "/").startsWith(extUrl)) {
-        for (let i = headers.length - 1; i >= 0; --i) {
-          let header = headers[i].name.toLowerCase()
-          if (header == 'x-frame-options' || header == 'frame-options' || header == 'content-security-policy') {
-            headers.splice(i, 1)
+  //
+  // Show the 'Follow' popup on the extension icon whenever a page with a
+  // detectable feed is loaded in a tab.
+  //
+  detectFeed(url, tabId) {
+    this.urlDetails(url, tabId).then(({found, feed}) => {
+      // console.log([`${url} => ${found}`, feed])
+      if (found === 1) {
+        try {
+          feed = JSON.parse(JSON.stringify(feed))
+          if (feed.sources?.length > 5) {
+            feed.sources = feed.sources.slice(0, 5)
           }
-        }
-      }
-      return {responseHeaders: headers};
-    }
-
-    // Firefox throws an error on "extraHeaders"
-    try {
-      browser.webRequest.onHeadersReceived.addListener(headersRecvFn,
-        {urls: ["<all_urls>"]}, ["blocking", "responseHeaders", "extraHeaders"])
-    } catch {
-      browser.webRequest.onHeadersReceived.addListener(headersRecvFn,
-        {urls: ["<all_urls>"]}, ["blocking", "responseHeaders"])
-    }
-
-    browser.webRequest.onCompleted.addListener(async e => {
-      let headers = e.responseHeaders
-      if (e.tabId === -1 && e.parentFrameId === 0) {
-        this.onRender(e.url)
-      }
-    }, {urls: ["<all_urls>"], types: ["xmlhttprequest"]})
-
-    browser.tabs.query({url: homepage}).then(tabs => {
-      tabs.map(x => browser.tabs.reload(x.id))})
-
-    browser.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-      if (changeInfo.status === "complete" && tab.url?.startsWith('http') && !tab.url?.startsWith('https://fraidyc.at/s/')) {
-        this.urlDetails(tab.url, tabId).then(({found, feed}) => {
-          // console.log([`${tab.url} => ${found}`, feed])
-          if (found === 1) {
-            try {
-              feed = JSON.parse(JSON.stringify(feed))
-              if (feed.sources?.length > 5) {
-                feed.sources = feed.sources.slice(0, 5)
-              }
-              browser.browserAction.setIcon({tabId, path: "images/portrait.png"})
-              browser.browserAction.setTitle({tabId, title: "Follow with Fraidycat"})
-              browser.browserAction.setPopup({tabId, popup: "popup.html?feed=" +
-                encodeURIComponent(JSON.stringify(feed))})
-            } catch {}
-          }
-        })
+          this.proxy('action.setIcon', {tabId, path: "images/portrait.png"})
+          this.proxy('action.setTitle', {tabId, title: "Follow with Fraidycat"})
+          this.proxy('action.setPopup', {tabId, popup: "popup.html?feed=" +
+            encodeURIComponent(JSON.stringify(feed))})
+        } catch {}
       }
     })
   }
