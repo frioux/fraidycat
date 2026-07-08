@@ -1,76 +1,69 @@
-import { followTitle, html2text, getIndexById, house, sortBySettings,
-  isValidFollow, Importances } from './util'
-import { h } from 'hyperapp'
+import { h } from 'preact'
+import { useState, useRef, useMemo, useLayoutEffect } from 'preact/hooks'
+import { followTitle, html2text, house, Importances } from './util'
 import { jsonDateParser } from "json-date-parser"
-import { Link, Route, Switch } from '@kickscondor/router'
+import { Link, Route, Switch, matchPath, location } from './router'
+import { store, loadPosts, changeSetting, save, subscribe, confirmRemove,
+  importFrom, exportTo } from './store'
 import EmojiButton from '@kickscondor/emoji-button'
 const frago = require('./frago')
 const url = require('url')
 const sparkline = require('./sparkline')
-import u from '@kickscondor/umbrellajs'
 
 const FormFreeze = (e) => {
   e.preventDefault()
-  u('button', e.target).each(ele => ele.disabled = true)
+  e.target.querySelectorAll('button').forEach(ele => (ele.disabled = true))
 }
 
-const Setting = ({name, value}, children) => ({follows}, actions) =>
-  <a href="#" class={follows.settings[name] === value && "sel"}
+const Setting = ({ name, value, children }) => {
+  let settings = store.value.settings
+  return <a href="#" class={settings[name] === value ? "sel" : undefined}
     onclick={e => {
       e.preventDefault()
-      u(e.target).closest('div.sort').removeClass('show')
-      actions.follows.changeSetting({name, value})
+      let sort = e.target.closest('div.sort')
+      if (sort) sort.classList.remove('show')
+      changeSetting({ name, value })
     }}>{children}</a>
-
-const ToggleHover = (el, parentSel, childSel) => {
-  let clicked = false
-  let display = show => {
-    let ele = u(el)
-    if (parentSel) ele = ele.closest(parentSel)
-    if (childSel) ele = ele.find(childSel)
-    let isShown = ele.hasClass('show')
-    if (clicked || show) {
-      if (!isShown) ele.addClass('show')
-    } else {
-      if (isShown) ele.removeClass('show')
-    }
-  }
-  u(el).on('mouseover', e => {
-    display(true)
-  }).on('mouseout', e => {
-    display(false)
-  })
 }
 
-const ToggleShowByEle = (ele, parentSel, cls) => {
-  u(ele).closest(parentSel).toggleClass(cls || "show")
+// Attach hover->'show' toggling (stable ref, so it binds once on mount).
+const toggleHoverRef = (el) => {
+  if (!el) return
+  el.addEventListener('mouseover', () => el.classList.add('show'))
+  el.addEventListener('mouseout', () => el.classList.remove('show'))
 }
 
-const ToggleShow = (e, parentSel, cls) => {
+const toggleShowByEle = (ele, parentSel, cls) => {
+  let target = ele.closest(parentSel)
+  if (target) target.classList.toggle(cls || "show")
+}
+
+const toggleShow = (e, parentSel, cls) => {
   e.preventDefault()
-  ToggleShowByEle(e.target, parentSel, cls)
+  toggleShowByEle(e.target, parentSel, cls)
 }
 
-const DragEdge = actions => e => {
+const DragEdge = (e) => {
   e.preventDefault()
-  let t = u(e.target).addClass('resizing')
-  let c = u(e.target.parentElement), actualWidth = 0
-  let move = e => {
+  let t = e.target
+  t.classList.add('resizing')
+  let c = t.parentElement, actualWidth = 0
+  let move = ev => {
     if (c) {
-      e.stopPropagation()
-      let width = Math.round(document.body.clientWidth - e.clientX)
+      ev.stopPropagation()
+      let width = Math.round(document.body.clientWidth - ev.clientX)
       if (width > 64 && width < document.body.clientWidth - 64) {
         actualWidth = width
-        c.attr('style', 'width: ' + width + 'px')
+        c.setAttribute('style', 'width: ' + width + 'px')
       }
     }
   }
-  let up = e => {
+  let up = () => {
     if (actualWidth > 0) {
-      let value = ((actualWidth / document.body.clientWidth) * 100).toFixed(2) + '%';
-      actions.follows.changeSetting({name: 'pane-width', value})
+      let value = ((actualWidth / document.body.clientWidth) * 100).toFixed(2) + '%'
+      changeSetting({ name: 'pane-width', value })
     }
-    t.removeClass('resizing')
+    t.classList.remove('resizing')
     document.removeEventListener('mousemove', move)
     document.removeEventListener('mouseup', up)
   }
@@ -78,91 +71,33 @@ const DragEdge = actions => e => {
   document.addEventListener('mouseup', up)
 }
 
-const WidenImages = el => {
-  u('img', el).each(img => {
-    if (img.naturalWidth == 0) {
-      img.addEventListener('load', _ => {
-        if (img.naturalWidth > 350) {
-          u(img).addClass('wide')
-        }
-      })
-    } else {
-      if (img.naturalWidth > 350) {
-        u(img).addClass('wide')
-      }
-    }
+// Widen images/videos wider than 350px once they have dimensions.
+const WidenImages = (el) => {
+  if (!el) return
+  el.querySelectorAll('img').forEach(img => {
+    let widen = () => { if (img.naturalWidth > 350) img.classList.add('wide') }
+    if (img.naturalWidth == 0) img.addEventListener('load', widen)
+    else widen()
   })
-
-  u('video', el).each(vid => {
-    if (vid.videoWidth == 0) {
-      vid.addEventListener('load', _ => {
-        if (vid.videoWidth > 350) {
-          u(vid).addClass('wide')
-        }
-      })
-    } else {
-      if (vid.videoWidth > 350) {
-        u(vid).addClass('wide')
-      }
-    }
+  el.querySelectorAll('video').forEach(vid => {
+    let widen = () => { if (vid.videoWidth > 350) vid.classList.add('wide') }
+    if (vid.videoWidth == 0) vid.addEventListener('load', widen)
+    else widen()
   })
 }
 
-const Nudge = (x) => a => {
-  let div = u(a.parentNode)
-  let ul = div.children('ul').first()
-  let moveTimer = null
-  let moveFn = () => {
-    if (ul.style) {
-      let newx = parseInt(ul.style.marginLeft || 0, 10) + x
-      let endx = ul.scrollWidth - a.parentNode.clientWidth
-      if (newx >= 0) {
-        newx = 0
-        clearInterval(moveTimer)
-      } else if (newx < -endx) {
-        newx = -endx
-        clearInterval(moveTimer)
-      }
-      div.children('.left').attr('style', 'display: ' + (newx == 0 ? 'none' : 'block'))
-      div.children('.right').attr('style', 'display: ' + (newx == -endx ? 'none' : 'block'))
-      ul.style.marginLeft = newx + "px"
-    }
-  }
-  u(a).on('mousedown', e => {
-    moveFn()
-    moveTimer = setInterval(moveFn, 50)
-  }).on('mouseup', e => clearInterval(moveTimer)).
-    on('click', e => e.preventDefault())
-
-  let calcNudge = () => {
-    let mx = parseInt(ul.style.marginLeft || 0, 10)
-    ul.style.marginLeft = "0px"
-    let show = a.parentNode.clientWidth < ul.scrollWidth
-    div.children('.left').attr('style', 'display: ' +
-      (show && mx > 0 ? 'block' : 'none'))
-    div.children('.right').attr('style', 'display: ' +
-      (show ? 'block' : 'none'))
-  }
-
-  window.addEventListener('resize', calcNudge, false)
-  calcNudge()
-}
-
-const FollowForm = (match, setup, isNew) => ({follows}, actions) => {
-  let follow = follows.editing
-  let picker = new EmojiButton()
-  if (setup) {
-    if ('tag' in match.params) {
-      follow.tags = [match.params.tag]
-    }
-    if ('importance' in match.params) {
-      follow.importance = Number(match.params.importance)
-    }
-  }
-  picker.on('emoji', ch => {
-    if (follow.tags) { follow.tags.push(ch) } else { follow.tags = [ch] }
-    actions.follows.set({follow})
-  })
+const FollowForm = ({ follow, isNew }) => {
+  const [, bump] = useState(0)
+  const picker = useMemo(() => new EmojiButton(), [])
+  const followRef = useRef(follow)
+  followRef.current = follow
+  useLayoutEffect(() => {
+    picker.on('emoji', ch => {
+      let f = followRef.current
+      if (f.tags) { f.tags.push(ch) } else { f.tags = [ch] }
+      bump(n => n + 1)
+    })
+  }, [picker])
 
   return follow && <form class="follow" onsubmit={FormFreeze}>
     {isNew &&
@@ -174,9 +109,9 @@ const FollowForm = (match, setup, isNew) => ({follows}, actions) => {
       </div>}
 
     <div>
-      <label for="importance">Importance</label> 
+      <label for="importance">Importance</label>
       <select id="importance" name="importance" onchange={e => follow.importance = Number(e.target.options[e.target.selectedIndex].value)}>
-      {Importances.map(imp => 
+      {Importances.map(imp =>
         <option value={imp[0]} selected={imp[0] == follow.importance}>{imp[2]} {imp[1]} &mdash; {imp[3]}</option>)}
       </select>
       <p class="note">Only 'Realtime' follows will highlight the tab when there
@@ -201,8 +136,12 @@ const FollowForm = (match, setup, isNew) => ({follows}, actions) => {
       <p class="note">(Leave empty to use <em>{follow.actualTitle || "the title loaded from the site"}</em>.)</p>
     </div>
 
-    <button onclick={e => {u('#working').attr('style', 'display: block'); return actions.follows.save(follow)}}>Save</button>
-    {!isNew && <button type="button" class="delete" onclick={_ => actions.follows.confirmRemove(follow)}>Delete This</button>}
+    <button onclick={e => {
+      let working = document.getElementById('working')
+      if (working) working.setAttribute('style', 'display: block')
+      return save(follow)
+    }}>Save</button>
+    {!isNew && <button type="button" class="delete" onclick={_ => confirmRemove(follow)}>Delete This</button>}
 
     <div id="working">
       <div>
@@ -213,32 +152,37 @@ const FollowForm = (match, setup, isNew) => ({follows}, actions) => {
   </form>
 }
 
-const EditFollowById = ({ match, setup }) => ({follows}) => {
-  if (setup)
-    follows.editing = JSON.parse(JSON.stringify(follows.all[match.params.id]), jsonDateParser)
+const EditFollowById = ({ match }) => {
+  let all = store.value.all
+  const follow = useMemo(
+    () => JSON.parse(JSON.stringify(all[match.params.id]), jsonDateParser),
+    [match.params.id])
 
   return <div id="edit-feed">
     <h2>Edit a Follow</h2>
-    <p>URL: {follows.editing.url}</p>
-    {FollowForm(match, setup, false)}
+    <p>URL: {follow.url}</p>
+    <FollowForm follow={follow} isNew={false} />
   </div>
 }
 
-const AddFollow = ({ match, setup }) => ({follows}) => {
-  if (setup) {
-    follows.editing = {url: match.params.url, title: match.params.title, importance: 0}
-  }
+const AddFollow = ({ match }) => {
+  const follow = useMemo(() => {
+    let f = { url: match.params.url, title: match.params.title, importance: 0 }
+    if ('tag' in match.params) f.tags = [match.params.tag]
+    if ('importance' in match.params) f.importance = Number(match.params.importance)
+    return f
+  }, [])
 
   return <div id="add-feed">
     <h2>Add a Follow</h2>
     <p>What blog, wiki or social account do you want to follow?</p>
     <p class="note"><em>This can also be a Twitter or Instagram feed, a YouTube channel, a subreddit, a Soundcloud.</em></p>
-    {FollowForm(match, setup, true)}
+    <FollowForm follow={follow} isNew={true} />
   </div>
 }
 
-const AddFeed = () => ({follows, settings}, actions) => {
-  let {list, site} = follows.feeds
+const AddFeed = () => {
+  let { list, site } = store.value.feeds
   let actual = list.some(feed => feed.type)
   return <div id="feed-select">
     <h2>Select a Feed</h2>
@@ -249,7 +193,7 @@ const AddFeed = () => ({follows, settings}, actions) => {
     {list.map(feed =>
       <li><input type="checkbox" onclick={e => feed.selected = e.target.checked} value={feed.url} /> {feed.title}<br /><em>{feed.url}</em></li>)}
     </ul>
-    <button onclick={_ => actions.follows.subscribe(follows.feeds)}>Subscribe</button>
+    <button onclick={_ => subscribe(store.value.feeds)}>Subscribe</button>
     </form>
   </div>
 }
@@ -308,10 +252,18 @@ function sparkpoints(el, ary) {
     if (points.every(x => x == 0))
       len = 0
   }
-  u(el).empty().addClass(`sparkline-${daily ? "d" : "w"}`).attr('width', len * 2)
+  el.innerHTML = ''
+  el.setAttribute('class', `sparkline sparkline-${daily ? "d" : "w"}`)
+  el.setAttribute('width', len * 2)
   el.parentNode.title = `graph of the last ${daily ? 'two' : 'six'} months`
   if (len > 0)
     sparkline(el, points.reverse())
+}
+
+const Sparkline = ({ activity }) => {
+  const ref = useRef(null)
+  useLayoutEffect(() => { if (ref.current) sparkpoints(ref.current, activity) })
+  return <svg ref={ref} class="sparkline" width="120" height="20" stroke-width="2"></svg>
 }
 
 function lastPostTime(follow, sortPosts) {
@@ -372,18 +324,25 @@ const PostView = (detail, focus, cls) => {
 
     let author = detail.author && detail.author !== focus.author && <span class="author">{detail.author}</span>
     cls += (detail.text || detail.html) ? ' text' : ''
-    return <div class={cls} oncreate={WidenImages} onupdate={WidenImages}>
+    return <div class={cls} ref={WidenImages}>
         {vid && <video class={vid[0]} controls><source src={vid[1]} /></video>}
         {graphic && <img class={graphic[0]} src={graphic[1]} />}
         {aud && <audio controls="true" preload="none" src={aud} />}
-        {detail.text ? <p>{author}{detail.text}</p> : 
-          (detail.html && <div>{author}<div class="inner" innerHTML={detail.html} /></div>)}
+        {detail.text ? <p>{author}{detail.text}</p> :
+          (detail.html && <div>{author}<div class="inner" dangerouslySetInnerHTML={{ __html: detail.html }} /></div>)}
         {detail.embeds && detail.embeds.map(post => PostView(post, focus, "embed"))}
       </div>
   }
 }
 
-const ListFollow = ({ location, match }) => ({follows}, actions) => {
+const paneStyleRef = (el) => {
+  // Set the initial pane width once; the drag handle mutates it afterward.
+  if (el && !el.style.width)
+    el.style.width = store.value.settings['pane-width'] || "50%"
+}
+
+const ListFollow = ({ match }) => {
+  let follows = store.value
   let now = new Date()
   let tag = match.params.tag ? match.params.tag : house
   let tags = {}, imps = {}
@@ -428,19 +387,18 @@ const ListFollow = ({ location, match }) => ({follows}, actions) => {
   let tagTabs = Object.keys(tags).filter(t => t != house).sort()
   tagTabs.unshift(house)
   let addLink = '/add?tag=' + encodeURIComponent(tag) + '&importance=' + imp
-  u('a.pink').attr('href', (location.hashRouting ? '#!' : '') + addLink)
 
   return <div id="follows">
     <div id="tags">
       <ul>
       {tagTabs.map(t => <li class={timeDarkness(tags[t], now)}><Link to={`/tag/${encodeURIComponent(t)}`}
-        class={t === tag && 'active'} onclick={e => ToggleShowByEle(e.target, "div")}>{t}</Link></li>)}
+        class={t === tag && 'active'} onclick={e => toggleShowByEle(e.target, "div")}>{t}</Link></li>)}
       </ul>
-      <h2><button class={timeDarkness(tags[tag], now)} onclick={e => ToggleShow(e, "div")}
+      <h2><button class={timeDarkness(tags[tag], now)} onclick={e => toggleShow(e, "div")}
          >{tag}</button></h2>
     </div>
     <div class="sort">
-      <a href="#" onclick={e => ToggleShow(e, "div")}>
+      <a href="#" onclick={e => toggleShow(e, "div")}>
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="3" y1="6" x2="21" y2="6"></line>
           <line x1="6" y1="12" x2="21" y2="12"></line>
@@ -494,16 +452,13 @@ const ListFollow = ({ location, match }) => ({follows}, actions) => {
               <Link to={viewUrl} class="url">{followTitle(follow)}</Link>
               <Link class="ext" to={follow.url} target="_blank"><img src={new URL('../images/link.svg', import.meta.url)} width="16" target="_blank" /></Link>
               {follow.status instanceof Array && follow.status.map(st =>
-                <a class={`status status-${st.type}`} oncreate={ToggleHover} href={st.url || follow.url} target="_blank"
+                <a class={`status status-${st.type}`} ref={toggleHoverRef} href={st.url || follow.url} target="_blank"
                   >{st.type === 'live' ? <span><img src={new URL('../images/rec.svg', import.meta.url)} width="12" /> LIVE</span> : <span><img src={new URL('../images/notepad.svg', import.meta.url)} width="16" /></span>}
                   <div>{st.title || st.text || html2text(st.html || '')}
                     {st[sortPosts] && <span class="ago">{timeAgo(st[sortPosts], now)}</span>}</div>
                 </a>)}
               {ago && <span class="latest">{ago}</span>}
-              <a><svg class="sparkline"
-                width="120" height="20" stroke-width="2"
-                oncreate={el => sparkpoints(el, follow.activity)}
-                onupdate={el => sparkpoints(el, follow.activity)}></svg></a>
+              <a><Sparkline activity={follow.activity} /></a>
               <Link to={`/edit/${follow.id}`} class="edit" title="edit"><img src={new URL('../images/270f.png', import.meta.url)} /></Link>
             </h3>
             <div class={`extra ${follows.settings['mode-expand'] || "trunc"}`}>
@@ -537,10 +492,10 @@ const ListFollow = ({ location, match }) => ({follows}, actions) => {
           <p>Or, click the <Link to="/settings" title="Settings"><img src={new URL('../images/gear.svg', import.meta.url)} width="16" /></Link> to import a bunch.</p>
           <p><em>Hey! Follows added to this <strong>Realtime</strong> page will highlight the tab when there are new posts!</em></p>
         </div>}
-    {focus && <div id="pane" oncreate={el => el.style = `width: ${follows.settings['pane-width'] || "50%"}`}>
+    {focus && <div id="pane" ref={paneStyleRef}>
       <div class="hide"><Link to={`/tag/${encodeURIComponent(tag)}?importance=${imp}`}>
         <img src={new URL('../images/hide.svg', import.meta.url)} width="24" /></Link></div>
-      <div class="edge" onmousedown={DragEdge(actions)} />
+      <div class="edge" onmousedown={DragEdge} />
       <div class="contents">
       {focus.posts.slice(focusLimit, focusLimit + 20).map(post => {
         let detail = focus.details[post.id]
@@ -569,14 +524,13 @@ const ListFollow = ({ location, match }) => ({follows}, actions) => {
   </div>
 }
 
-const ViewFollowById = ({ location, match, setup }) => ({follows}, actions) => {
-  if (setup) {
-    actions.follows.loadPosts(match.params.id)
-    let contents = u('#pane .contents').first()
-    if (contents) {
-      contents.scrollTop = 0
-    }
-  }
+const ViewFollowById = ({ match, location }) => {
+  let follows = store.value
+  useLayoutEffect(() => {
+    loadPosts(match.params.id)
+    let contents = document.querySelector('#pane .contents')
+    if (contents) contents.scrollTop = 0
+  }, [match.params.id])
 
   if (follows.focus) {
     let tag = follows.focus.tags && follows.focus.tags[0]
@@ -584,7 +538,7 @@ const ViewFollowById = ({ location, match, setup }) => ({follows}, actions) => {
       importance: follows.focus.importance}, match.params)
   }
 
-  return ListFollow({ location, match })
+  return ListFollow({ match, location })
 }
 
 const ImportFrom = (format) => {
@@ -593,7 +547,7 @@ const ImportFrom = (format) => {
   imp.click()
 }
 
-const ChangeSettings = ({ match, setup }) => (state, {follows}) => {
+const ChangeSettings = () => {
   return <div id="settings">
     <div class="about">
       <a href="https://fraidyc.at/"><img src={new URL('../images/flatcat-512.png', import.meta.url)} alt="Fraidycat" title="Fraidycat" /></a>
@@ -603,26 +557,26 @@ const ChangeSettings = ({ match, setup }) => (state, {follows}) => {
     </div>
     <form onsubmit={e => e.preventDefault()}>
     <input type="file" id="fileImp" style="display: none" name=""
-      onchange={e => follows.importFrom(e)} />
+      onchange={e => importFrom(e)} />
     <h3>Import / Export</h3>
     <div>
       <p><strong>JSON:</strong>
         <button onclick={e => ImportFrom('json')}>Full Import</button>
-        <button onclick={e => follows.exportTo('json')}>Full Export</button></p>
+        <button onclick={e => exportTo('json')}>Full Export</button></p>
       <p class="note">This will save <em>all</em> of your Fraidycat settings.</p>
     </div>
     <div>
       <p>
         <strong>OPML:</strong>
         <button onclick={e => ImportFrom('opml')}>Import Follows</button>
-        <button onclick={e => follows.exportTo('opml')}>Export Follows</button>
+        <button onclick={e => exportTo('opml')}>Export Follows</button>
       </p>
       <p class="note">This will only backup your follows.</p>
     </div>
     <div>
       <p>
         <strong>HTML:</strong>
-        <button onclick={e => follows.exportTo('html')}>Export Follows</button>
+        <button onclick={e => exportTo('html')}>Export Follows</button>
       </p>
       <p class="note">This is just for fun - a bookmarks list in HTML.</p>
     </div>
@@ -630,9 +584,11 @@ const ChangeSettings = ({ match, setup }) => (state, {follows}) => {
   </div>
 }
 
-export default (state, actions) => {
+export const App = () => {
+  let follows = store.value
+  let loc = location.value
   let settings = window.location.pathname === "/settings.html"
-  if (!state.follows.started)
+  if (!follows.started)
     return <div id="scanner">
       <div id="logo">
         <img src={new URL('../images/fc.png', import.meta.url)} />
@@ -643,41 +599,47 @@ export default (state, actions) => {
       </div>
     </div>
 
-  //	
-  // Report progress on follows that are currently updating.	
-  //	
-  let upd = state.follows.updating, urgent = state.follows.urgent
-  let updDone = 0, updTotal = 0, note = null, last = new Date()	
-  for (let id in upd) {	
-    let f = upd[id]	
-    updTotal++	
-    if (f.done) {	
-      updDone++	
-    } else if (!note || f.startedAt < last) {	
-      note = id.substring(0, id.length - 9)	
-      last = f.startedAt	
-    }	
+  //
+  // Report progress on follows that are currently updating.
+  //
+  let upd = follows.updating || {}, urgent = follows.urgent
+  let updDone = 0, updTotal = 0, note = null, last = new Date()
+  for (let id in upd) {
+    let f = upd[id]
+    updTotal++
+    if (f.done) {
+      updDone++
+    } else if (!note || f.startedAt < last) {
+      note = id.substring(0, id.length - 9)
+      last = f.startedAt
+    }
   }
 
-  // console.log(state.follows.all)
   let logo = new URL('../images/fc.png', import.meta.url)
-  if (state.follows.settings['mode-theme'] === 'dark') {
+  if (follows.settings['mode-theme'] === 'dark') {
     logo = new URL('../images/fc-cy.png', import.meta.url)
   }
 
-  return <div class={`theme--${state.follows.settings['mode-theme'] || "auto"}`}>
+  // Add-follow link carries the currently-viewed tag/importance (this replaced
+  // an imperative DOM patch of the header link in the Hyperapp version).
+  let tagMatch = matchPath('/tag/:tag', loc)
+  let curTag = tagMatch ? tagMatch.params.tag : house
+  let curImp = matchPath('', loc).params.importance || 0
+  let addLink = `/add?tag=${encodeURIComponent(curTag)}&importance=${curImp}`
+
+  return <div class={`theme--${follows.settings['mode-theme'] || "auto"}`}>
     <article>
       <header>
         <div id="menu">
           {!settings && <ul>
-            {updTotal > 2 ?	
-              <li id="notice">	
-                <div class="progress"><div style={`width: ${Math.round((updDone / updTotal) * 100)}%`}></div></div>	
-                <p>{note}</p>	
-              </li> :	
-              (urgent && <li id="urgent"><p><a href="#" onclick={e => {	
+            {updTotal > 2 ?
+              <li id="notice">
+                <div class="progress"><div style={`width: ${Math.round((updDone / updTotal) * 100)}%`}></div></div>
+                <p>{note}</p>
+              </li> :
+              (urgent && <li id="urgent"><p><a href="#" onclick={e => {
                 e.preventDefault(); urgent.approve()}}>{urgent.note}</a></p></li>)}
-            <li><Link to="/add" class="pink" title="Add a Follow"><img src={new URL('../images/add.svg', import.meta.url)} width="16" /></Link></li>
+            <li><Link to={addLink} class="pink" title="Add a Follow"><img src={new URL('../images/add.svg', import.meta.url)} width="16" /></Link></li>
             <li><Link to="/settings" title="Settings"><img src={new URL('../images/gear.svg', import.meta.url)} width="16" /></Link></li>
           </ul>}
         </div>
