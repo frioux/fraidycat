@@ -8,63 +8,16 @@
 //
 import { h } from 'preact'
 import { signal } from '@preact/signals'
+const { parseHash, matchPath } = require('./router-match')
 
-function read() {
-  let raw = window.location.hash.startsWith('#!') ? window.location.hash.slice(2) : ''
-  raw = raw || '/'
-  let search = '', qi = raw.indexOf('?')
-  if (qi >= 0) {
-    search = raw.slice(qi + 1)
-    raw = raw.slice(0, qi)
-  }
-  return { pathname: raw, search, hashRouting: true }
-}
+export { matchPath }
 
-export const location = signal(read())
+export const location = signal(parseHash(window.location.hash))
 
-window.addEventListener('hashchange', () => { location.value = read() })
+window.addEventListener('hashchange', () => { location.value = parseHash(window.location.hash) })
 
 export function route(to) {
   window.location.hash = '#!' + to
-}
-
-function decode(s) {
-  try { return decodeURIComponent(s) } catch { return s }
-}
-
-function parseQuery(search) {
-  let out = {}
-  if (search) {
-    for (let pair of search.split('&')) {
-      let i = pair.indexOf('=')
-      let k = i < 0 ? pair : pair.slice(0, i)
-      let v = i < 0 ? undefined : pair.slice(i + 1)
-      if (k) out[decode(k)] = v === undefined ? undefined : decode(v)
-    }
-  }
-  return out
-}
-
-const stripTrailing = s => s.replace(/\/+$/, '')
-
-//
-// Match a route pattern (e.g. "/tag/:tag") against the current location.
-// Returns { isExact, path, params } or null. `params` merges query-string
-// values with any :named path segments.
-//
-export function matchPath(pattern, loc) {
-  let params = parseQuery(loc.search)
-  if (!pattern || pattern === loc.pathname)
-    return { isExact: pattern === loc.pathname, path: loc.pathname, params }
-
-  let pat = stripTrailing(pattern).split('/')
-  let seg = stripTrailing(loc.pathname).split('/')
-  if (pat.length > seg.length) return null
-  for (let i = 0; i < pat.length; i++) {
-    if (pat[i][0] === ':') params[pat[i].slice(1)] = decode(seg[i])
-    else if (pat[i] !== seg[i]) return null
-  }
-  return { isExact: false, path: loc.pathname, params }
 }
 
 //

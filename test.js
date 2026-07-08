@@ -103,3 +103,97 @@ test('electrolemon: sort by fields', t => {
   let posts = frago.master(feed, ['publishedAt', 'updatedAt'], 10)
   t.assert(posts.some(x => x.id === 'twitter.com-104e3097'))
 })
+
+//
+// Hash router matching (src/js/router-match.js) - the parsing/matching that
+// drives navigation in the Preact UI.
+//
+const rm = require('./src/js/router-match')
+
+test('router: parseHash splits pathname and query', t => {
+  t.deepEqual(rm.parseHash('#!/tag/comics?importance=1'),
+    { pathname: '/tag/comics', search: 'importance=1', hashRouting: true })
+  t.is(rm.parseHash('').pathname, '/')          // empty hash -> root
+  t.is(rm.parseHash('#!/').pathname, '/')
+  t.is(rm.parseHash('#!/settings').search, '')
+})
+
+test('router: matchPath extracts :params and query together', t => {
+  let tag = rm.matchPath('/tag/:tag', { pathname: '/tag/comics', search: '' })
+  t.is(tag.params.tag, 'comics')
+
+  let view = rm.matchPath('/view/:id',
+    { pathname: '/view/kicks', search: 'importance=0&tag=%F0%9F%8F%A0' })
+  t.is(view.params.id, 'kicks')
+  t.is(view.params.importance, '0')
+  t.is(view.params.tag, '\u{1f3e0}')           // %F0%9F%8F%A0 decodes to the house emoji
+})
+
+test('router: catch-all matches, mismatches return null', t => {
+  t.truthy(rm.matchPath(undefined, { pathname: '/anything', search: '' }))
+  t.truthy(rm.matchPath('/settings', { pathname: '/settings', search: '' }).isExact)
+  t.is(rm.matchPath('/tag/:tag', { pathname: '/settings', search: '' }), null)
+  t.is(rm.matchPath('/edit/:id', { pathname: '/view/x', search: '' }), null)
+})
+
+//
+// Background-message reducer (src/js/messages.js) - the state transitions the
+// store applies when the background talks to the UI. Message shapes mirror
+// those produced by the mock and webext storage backends.
+//
+const { reduce } = require('./src/js/messages')
+
+test('messages: initial load merges state and marks started', t => {
+  let start = { all: {}, started: false, settings: {} }
+  let out = reduce(start, { all: { kicks: { id: 'kicks' } }, settings: { x: 1 }, started: true })
+  t.true(out.state.started)
+  t.deepEqual(out.state.all, { kicks: { id: 'kicks' } })
+  t.deepEqual(out.state.settings, { x: 1 })
+  t.falsy(out.nav)
+})
+
+test('messages: load sets the focused follow', t => {
+  let out = reduce({ started: true }, { op: 'load', id: 'kicks', meta: { id: 'kicks', posts: [] } })
+  t.is(out.state.focus.id, 'kicks')
+})
+
+test('messages: replace patch updates a follow in place', t => {
+  let out = reduce({ all: { kicks: { id: 'kicks', title: 'old' } }, started: true },
+    { op: 'replace', path: '/all/kicks', value: { id: 'kicks', title: 'new' } })
+  t.is(out.state.all.kicks.title, 'new')
+})
+
+test('messages: replace patch updates settings', t => {
+  let out = reduce({ settings: {}, started: true },
+    { op: 'replace', path: '/settings', value: { 'mode-theme': 'dark' } })
+  t.is(out.state.settings['mode-theme'], 'dark')
+})
+
+test('messages: remove patch deletes a follow', t => {
+  let out = reduce({ all: { kicks: { id: 'kicks' } }, started: true },
+    { op: 'remove', path: '/all/kicks' })
+  t.false('kicks' in out.state.all)
+})
+
+test('messages: subscription navigates to the follow', t => {
+  let tagged = reduce({}, { op: 'subscription', follow: { tags: ['comics'], importance: 1 } })
+  t.is(tagged.nav, '/tag/comics?importance=1')
+  let home = reduce({}, { op: 'subscription', follow: { importance: 0 } })
+  t.is(home.nav, '/?importance=0')
+})
+
+test('messages: discovery stores feeds and navigates to picker', t => {
+  let out = reduce({}, { op: 'discovery', feeds: [{ url: 'x' }], follow: { url: 'site' } })
+  t.is(out.nav, '/add-feed')
+  t.deepEqual(out.state.feeds, { list: [{ url: 'x' }], site: { url: 'site' } })
+})
+
+test('messages: interactive ops pass through untouched', t => {
+  for (let op of ['error', 'exported', 'autoUpdate']) {
+    let state = { started: true }
+    let out = reduce(state, { op })
+    t.true(out.passthrough)
+    t.is(out.state, state)                      // caller handles these; state unchanged
+    t.falsy(out.nav)
+  }
+})

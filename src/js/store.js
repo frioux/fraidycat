@@ -10,9 +10,9 @@
 // unchanged - this module just talks to it via `client`/`command`.
 //
 import { signal } from '@preact/signals'
-import { applyOperation } from 'fast-json-patch'
 import { followTitle } from './util'
 import { route } from './router'
+const { reduce } = require('./messages')
 const storage = require('./storage-platform')
 const { alert, confirm } = require('./dialogs')
 
@@ -25,18 +25,12 @@ function merge(partial) {
 }
 
 //
-// Receive an update from the background process.
+// Receive an update from the background process. Interactive/side-effecting
+// messages are handled here; the rest are pure state transitions delegated to
+// the reducer in messages.js (which is unit-tested).
 //
 function update(patch) {
-  if (patch.op === 'load') {
-    merge({ focus: patch.meta })
-  } else if (patch.op === 'discovery') {
-    route('/add-feed')
-    merge({ feeds: { list: patch.feeds, site: patch.follow } })
-  } else if (patch.op === 'subscription') {
-    route(`/${patch.follow.tags && patch.follow.tags[0] ?
-      `tag/${encodeURIComponent(patch.follow.tags[0])}` : ''}?importance=${patch.follow.importance}`)
-  } else if (patch.op === 'exported') {
+  if (patch.op === 'exported') {
     let data = "data:" + patch.mimeType + ";charset=UTF-8," + encodeURIComponent(patch.contents)
     let link = document.createElement('a')
     link.setAttribute('download', 'fraidycat.' + patch.format)
@@ -44,13 +38,17 @@ function update(patch) {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-  } else if (patch.op === 'autoUpdate') {
+    return
+  }
+  if (patch.op === 'autoUpdate') {
     merge({ urgent: { note: `Update to version ${patch.version}`,
       approve: () => {
         local.command('autoUpdateApproved')
         merge({ urgent: null })
       } } })
-  } else if (patch.op === 'error') {
+    return
+  }
+  if (patch.op === 'error') {
     if (patch.follow) {
       if (confirm(`${patch.message}\n\nAdd this follow anyway? (In case it might be down for the moment.)`)) {
         patch.follow.force = true
@@ -63,17 +61,12 @@ function update(patch) {
     let working = document.getElementById('working')
     if (working) working.setAttribute('style', '')
     document.querySelectorAll('form button').forEach(b => (b.disabled = false))
-  } else if (patch.op) {
-    // A JSON-patch operation from the background: apply it in place, then
-    // publish a fresh top-level reference so the signal notifies subscribers.
-    try {
-      applyOperation(store.value, patch)
-      store.value = { ...store.value }
-    } catch {}
-  } else {
-    // No `op`: a whole-state merge (e.g. the initial load).
-    merge(patch)
+    return
   }
+
+  let { state, nav } = reduce(store.value, patch)
+  store.value = state
+  if (nav) route(nav)
 }
 
 //
