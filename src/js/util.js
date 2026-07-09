@@ -14,14 +14,6 @@ const Importances = [
   [365, "Rarely", "\u{2602}", "Not very active. Or, just don't lose this."]
 ]
 
-async function responseToObject (resp) {
-  let headers = {}
-  let body = await resp.text()
-  for (let h of resp.headers)
-    headers[h[0].toLowerCase()] = h[1]
-  return {status: resp.status, ok: resp.ok, url: resp.url, body, headers}
-}
-
 function fixupHeaders (options, list) {
   if (options && options.headers) {
     let fix = {}
@@ -39,13 +31,6 @@ function getIndexById (ary, id, field = 'id') {
       return i
   }
   return -1
-}
-
-function getMaxIndex (index) {
-  let vals = Object.values(index)
-  if (vals.length == 0)
-    return 0
-  return Math.max(...vals)
 }
 
 const ATTR_DIM = 1
@@ -71,7 +56,7 @@ function sanitizeAttr(ele, name, type, attr, url) {
           // Allow from 5px to 500px as a dimension
           // 
           let n = Number(m[1])
-          if (n < 5 && n > 500) {
+          if (n < 5 || n > 500) {
             return false
           }
         } else if (m[2]) {
@@ -79,7 +64,7 @@ function sanitizeAttr(ele, name, type, attr, url) {
           // Allow 5% to 100 dimension size
           //
           let n = Number(m[2])
-          if (n < 5 && n > 100) {
+          if (n < 5 || n > 100) {
             return false
           }
         }
@@ -236,10 +221,6 @@ function html2text (html) {
   return u("<div>" + html).text()
 }
 
-function urlToFeed(abs, href) {
-  return normalizeUrl(url.resolve(abs, href), {stripWWW: false, stripHash: true, removeTrailingSlash: false})
-}
-
 function urlToNormal (link, stripHash) {
   try {
     return normalizeUrl(link, {stripProtocol: true, removeDirectoryIndex: true, stripHash})
@@ -259,18 +240,6 @@ function followTitle(follow) {
 
 function isValidFollow(follow) {
   return follow.url && follow.feed && follow.id
-}
-
-function sortBySettings(follow, settings) {
-  let sortPosts = settings['mode-updates'] || 'publishedAt'
-  let showReposts = settings['mode-reposts'] === 'all'
-  let sortedBy = [sortPosts, showReposts].join(',')
-  if (follow.sortedBy !== sortedBy) {
-    follow.sortedBy = sortedBy
-    follow.posts.sort((a, b) =>
-      ((showReposts || !b.author || b.author === follow.author)
-        && b[sortPosts] > a[sortPosts]) ? 1 : -1)
-  }
 }
 
 //
@@ -310,6 +279,6 @@ function xpathDom(doc, node, path, asText, ns) {
   return list
 }
 
-module.exports = {fixupHeaders, followTitle, getIndexById, getMaxIndex, house,
-  html2text, innerHtmlDom, isValidFollow, parseDom, responseToObject, sanitize,
-  sortBySettings, urlToFeed, urlToID, urlToNormal, xpathDom, Importances}
+module.exports = {fixupHeaders, followTitle, getIndexById, house,
+  html2text, innerHtmlDom, isValidFollow, parseDom, sanitize,
+  urlToID, urlToNormal, xpathDom, Importances}

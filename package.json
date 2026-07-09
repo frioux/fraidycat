@@ -12,9 +12,12 @@
   },
   "version": "2.0.0",
   "scripts": {
-    "dev": "cross-env STORAGE=mock parcel serve src/dev.html --target frontend --port 4321",
+    "check": "npm run lint && npm run deadcode && npm test",
+    "deadcode": "knip",
+    "dev": "cross-env STORAGE=mock parcel serve src/dev.html --target frontend --port 4321 --no-autoinstall",
+    "lint": "oxlint src --deny-warnings",
     "test": "ava",
-    "webext": "fsbin emptyDir build/webext && cross-env STORAGE=webext parcel build --target webext --config @parcel/config-webextension --no-cache --no-source-maps --no-content-hash",
+    "webext": "fsbin emptyDir build/webext && cross-env STORAGE=webext parcel build --target webext --config @parcel/config-webextension --no-cache --no-source-maps --no-content-hash --no-autoinstall",
     "webext:lint": "web-ext lint --source-dir ./build/webext/"
   },
   "targets": {
@@ -41,8 +44,7 @@
     "fraidyscrape": "^1.0.16",
     "json-date-parser": "^1.0.1",
     "normalize-url": "^7.0.2",
-    "opml-generator": "^1.1.1",
-    "xpath": "^0.0.32"
+    "opml-generator": "^1.1.1"
   },
   "devDependencies": {
     "@kickscondor/emoji-button": "^2.1.4",
@@ -56,6 +58,8 @@
     "events": "^3.3.0",
     "fast-json-patch": "^3.1.0",
     "fsbin": "^1.0.11",
+    "knip": "^6.25.0",
+    "oxlint": "^1.73.0",
     "parcel": "2.13.3",
     "preact": "^10.29.7",
     "process": "^0.11.10",

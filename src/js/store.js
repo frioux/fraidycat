@@ -85,7 +85,6 @@ export async function init() {
 export const loadPosts = id => local.command('loadPosts', id)
 export const changeSetting = s => local.command('changeSetting', s)
 export const subscribe = fc => local.command('subscribe', fc)
-export const rename = tag => local.command('rename', tag)
 export const exportTo = format => local.command('exportTo', { format })
 
 export const save = follow => {

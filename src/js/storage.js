@@ -17,13 +17,12 @@
 // instance to run alone, with no syncing, should the user want it that way.
 //
 const { followTitle, house, html2text, getIndexById, Importances,
-  sanitize, urlToFeed, urlToID, urlToNormal, isValidFollow } = require('./util')
+  sanitize, urlToID, urlToNormal, isValidFollow } = require('./util')
 const u = require('@kickscondor/umbrellajs')
 
 const fraidyscrape = require('fraidyscrape')
 const og = require('opml-generator')
 const frago = require('./frago')
-const url = require('url')
 
 const SYNC_FULL = 1
 const SYNC_PARTIAL = 2
@@ -275,7 +274,7 @@ module.exports = {
       return {feed, err}
     }
 
-    while (req = this.scraper.nextRequest(tasks)) {
+    while ((req = this.scraper.nextRequest(tasks))) {
       // console.log(req)
       try {
         let obj
@@ -721,30 +720,6 @@ module.exports = {
   },
 
   //
-  // Rename a tag
-  //
-  rename(tag) {
-    if (tag.to instanceof String && tag.from instanceof String) {
-      let follows = []
-      for (let id in this.all) {
-        let follow = this.all[id]
-        if (follow.tags) {
-          let index = follow.tags.indexOf(tag.from)
-          if (index >= 0) {
-            follow.tags[index] = tag.to
-            follows.push(follow.id)
-            this.notifyFollow(follow, true)
-          }
-        }
-      }
-
-      if (follows.length > 0) {
-        this.write({update: true, follows})
-      }
-    }
-  },
-
-  //
   // Import from an OPML file
   //
   async importFrom(data) {
@@ -905,7 +880,6 @@ module.exports = {
     }
 
     if (!savedId) {
-      let found = false
       if (this.findFeed(follow))
         throw new ConflictError(`${follow.feed} is already a subscription of yours.`)
     }
@@ -946,9 +920,7 @@ module.exports = {
       if (e.name === 'ConflictError' || !follow.force) {
         if (e.name === 'ConflictError')
           follow = null
-        if (e.message)
-          e = e.message
-        this.update({op: 'error', follow, message: e}, sender)
+        this.update({op: 'error', follow, message: e.message || e}, sender)
         return
       }
     }
@@ -983,9 +955,7 @@ module.exports = {
           follows.push(follow.id)
         }
       } catch (msg) {
-        if (msg.message)
-          msg = msg.message
-        errors.push(msg)
+        errors.push(msg.message || msg)
       }
     }
     if (follows.length > 0)

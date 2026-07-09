@@ -26,7 +26,7 @@ function buildElement(tag, attrs) {
   return element;
 }
 
-module.exports = function(svg, entries, options) {
+export default function sparkline(svg, entries, options) {
   removeChildren(svg);
 
   if (entries.length <= 1) {

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/background.js",
+    "src/offscreen.js",
+    "src/js/index.js",
+    "src/js/popup.js",
+    "src/js/webext/content-script.js"
+  ],
+  "project": ["src/**/*.js"],
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": [
+    "url",
+    "process",
+    "@parcel/config-webextension",
+    "@parcel/transformer-image",
+    "events",
+    "stream-browserify",
+    "svgo"
+  ]
+}

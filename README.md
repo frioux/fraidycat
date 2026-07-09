@@ -120,6 +120,19 @@ directory. To lint the build, run `npm run webext:lint`.
 For UI work without loading the extension, `npm run dev` serves a hot-reloading
 harness (backed by mock storage) at http://localhost:4321.
 
+### Checks
+
+Run everything at once with `npm run check`, or individually:
+
+    npm run lint       # oxlint: unused variables, unreachable/dead code, common bugs
+    npm run deadcode   # knip: unused files, exports, and dependencies
+    npm test           # ava: the unit tests
+
+`lint` and `deadcode` both fail on any finding, so they double as CI gates that
+keep the tree free of dead code and unused dependencies. Both tools are
+self-contained (oxlint is a single binary; knip is dev-only) and never ship in
+the extension.
+
 ### License
 
 Fraidycat is distributed under the Blue Oak Model License 1.0.0.

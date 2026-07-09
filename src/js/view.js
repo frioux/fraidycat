@@ -8,7 +8,7 @@ import { store, loadPosts, changeSetting, save, subscribe, confirmRemove,
 import EmojiButton from '@kickscondor/emoji-button'
 const frago = require('./frago')
 const url = require('url')
-const sparkline = require('./sparkline')
+import sparkline from './sparkline'
 
 const FormFreeze = (e) => {
   e.preventDefault()
@@ -124,7 +124,8 @@ const FollowForm = ({ follow, isNew }) => {
         oninput={e => e.target.value ? (follow.tags = e.target.value.trim().split(/\s+/)) : (delete follow.tags)} />
       <a href="#" class="emoji" onclick={e => {
         e.preventDefault()
-        picker.pickerVisible ? picker.hidePicker() : picker.showPicker(e.target)
+        if (picker.pickerVisible) picker.hidePicker()
+        else picker.showPicker(e.target)
       }}>&#128513;</a>
       <p class="note">(If left blank, tag is assumed to be '&#x1f3e0;'&mdash;the main page tag.)</p>
     </div>
@@ -288,7 +289,7 @@ const Favicon = function(follow) {
 }
 
 const TitleMaxlen = 60, TitleMinlen = 24
-const TitleTruncRe = new RegExp(`([-,.!;:)]\s[^-,.!;:]{0,${TitleMaxlen - TitleMinlen}}|\\s\\S*)$`)
+const TitleTruncRe = new RegExp(`([-,.!;:)]\\s[^-,.!;:]{0,${TitleMaxlen - TitleMinlen}}|\\s\\S*)$`)
 const TitleTrunc = function(title) {
   if (title.length < TitleMaxlen)
     return title
@@ -429,7 +430,7 @@ const ListFollow = ({ match }) => {
     {viewable.length > 0 ?
       <ol>{viewable.map(follow => {
         try {
-          let lastPostAt = lastPostTime(follow, sortPosts), tags = []
+          let lastPostAt = lastPostTime(follow, sortPosts)
           let ago = timeAgo(lastPostAt, now)
           let dk = timeDarkness(lastPostAt, now)
           let id = `follow-${follow.id}`
@@ -467,7 +468,6 @@ const ListFollow = ({ match }) => {
                 {follow.posts instanceof Array && follow.posts.length > 0 &&
                   (showReposts ? follow.posts : follow.posts.filter(x => !x.author || x.author === follow.author)).
                     slice(0, follow.limit || 10).map(f => {
-                      let postAge = timeAgo(f[sortPosts], now)
                       return <li class={timeDarkness(f[sortPosts], now)}>
                         {f.author && f.author !== follow.author && <span class="author">{f.author}</span>}
                         {f.url.startsWith('id:') ? <span class="txt">{TitleTrunc(f.title)}</span> : <a href={f.url}>{TitleTrunc(f.title)}</a>}
