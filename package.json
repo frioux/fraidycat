@@ -48,7 +48,6 @@
   },
   "devDependencies": {
     "@kickscondor/emoji-button": "^2.1.4",
-    "@kickscondor/umbrellajs": "^3.1.2",
     "@parcel/config-webextension": "2.13.3",
     "@parcel/transformer-image": "2.13.3",
     "@preact/signals": "^2.9.3",

@@ -2,7 +2,6 @@ const ent = require('ent/decode')
 let normalizeUrl = null
 import('normalize-url').then(x => normalizeUrl = x.default)
 const sanitizeHtml = require('./sanitize')
-const u = require('@kickscondor/umbrellajs')
 
 const house = "\u{1f3e0}"
 
@@ -218,7 +217,9 @@ function sanitize(html, url) {
 function html2text (html) {
   if (html.replace)
     html = html.replace(/[a-z]+:\/\//g, ' ')
-  return u("<div>" + html).text()
+  let div = document.createElement('div')
+  div.innerHTML = html
+  return div.textContent
 }
 
 function urlToNormal (link, stripHash) {

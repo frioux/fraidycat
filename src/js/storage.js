@@ -18,7 +18,6 @@
 //
 const { followTitle, house, html2text, getIndexById, Importances,
   sanitize, urlToID, urlToNormal, isValidFollow } = require('./util')
-const u = require('@kickscondor/umbrellajs')
 
 const fraidyscrape = require('fraidyscrape')
 const og = require('opml-generator')
@@ -821,28 +820,37 @@ module.exports = {
       let tags = Object.keys(allTags).filter(t => t != house).sort()
       tags.unshift(house)
 
-      let dl = u('<dl>')
+      let elem = (tag, attrs, ...children) => {
+        let node = document.createElement(tag)
+        if (attrs)
+          for (let k in attrs) node.setAttribute(k, attrs[k])
+        for (let c of children)
+          if (c != null) node.append(c)
+        return node
+      }
+
+      let dl = document.createElement('dl')
       for (let tag of tags) {
-        let dli = u('<dl>')
+        let dli = document.createElement('dl')
         for (let imp of Importances) {
           let fk = `${tag}/${imp[0]}`
           if (follows[fk]) {
-            let dlr = u('<dl>')
+            let dlr = document.createElement('dl')
             for (let follow of follows[fk]) {
-              dlr.append(u('<dt>').append(u('<a>').attr({href: follow.url}).text(followTitle(follow))))
+              dlr.append(elem('dt', null, elem('a', {href: follow.url}, followTitle(follow))))
             }
-            dli.append(u('<dt>').append(u('<h4>').text(imp[2] + " " + imp[1])).append(dlr))
+            dli.append(elem('dt', null, elem('h4', null, imp[2] + " " + imp[1]), dlr))
           }
         }
 
-        dl.append(u('<dt>').append(u('<h3>').text(tag)).append(dli))
+        dl.append(elem('dt', null, elem('h3', null, tag), dli))
       }
 
-      contents = u('<div>').
-        append(u('<meta>').attr({'Content-Type': 'text/html; charset=UTF-8'})).
-        append(u('<title>').text('Fraidycat Links')).
-        append(u('<h1>').text('Fraidycat Follows')).
-        append(dl).html()
+      contents = elem('div', null,
+        elem('meta', {'Content-Type': 'text/html; charset=UTF-8'}),
+        elem('title', null, 'Fraidycat Links'),
+        elem('h1', null, 'Fraidycat Follows'),
+        dl).innerHTML
 
     } else {
       //

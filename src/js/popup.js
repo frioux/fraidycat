@@ -1,4 +1,15 @@
-import u from '@kickscondor/umbrellajs'
+//
+// Minimal DOM helper: create an element, set attributes, append children
+// (strings become text nodes, so pass an <br> element, not "<br>").
+//
+function el(tag, attrs, ...children) {
+  let node = document.createElement(tag)
+  if (attrs)
+    for (let k in attrs) node.setAttribute(k, attrs[k])
+  for (let c of children)
+    if (c != null) node.append(c)
+  return node
+}
 
 let params = new URLSearchParams(location.search)
 let feed = params.get("feed")
@@ -7,39 +18,40 @@ chrome.tabs.query({active: true, currentWindow: true}, tabs => {
   document.getElementById('add').firstChild.href += "?url=" + encodeURIComponent(turl)
   try {
     feed = JSON.parse(feed)
-    let card = u('#card').empty()
+    let card = document.getElementById('card')
+    card.replaceChildren()
     if (feed.photos?.avatar) {
-      card.append(u("<img>").attr({src: feed.photos.avatar}).wrap("<div id='avatar'>"))
+      card.append(el('div', {id: 'avatar'}, el('img', {src: feed.photos.avatar})))
     }
     if (feed.title) {
-      card.append(u("<h1>").text(feed.title))
+      card.append(el('h1', null, feed.title))
     }
-    card.append(u("<h2>").text((new URL(turl)).hostname))
+    card.append(el('h2', null, (new URL(turl)).hostname))
     if (feed.description) {
-      card.append(u("<p>").text(feed.description))
+      card.append(el('p', null, feed.description))
     }
     if (feed.sources?.length > 1) {
       for (let i = 0; i < feed.sources.length; i++) {
         let src = feed.sources[i]
-        let radio = u("<input type='radio' name='sources'>").attr({value: src.url, id: `source${i}`})
-        let label = u("<label>").attr({for: `source${i}`}).text(src.title)
-        let span = u("<span>").text(src.url)
-        card.append(u("<div class='source'>").append(radio).append(" ").append(label).append("<br>").append(span))
+        let radio = el('input', {type: 'radio', name: 'sources', value: src.url, id: `source${i}`})
+        let label = el('label', {for: `source${i}`}, src.title)
+        let span = el('span', null, src.url)
+        card.append(el('div', {class: 'source'}, radio, ' ', label, el('br'), span))
       }
     }
-		let links = document.getElementsByTagName('a')
-		for (let i = 0; i < links.length; i++) {
-			links[i].addEventListener('click', e => {
-				if (e.target === document.getElementById('addlink')) {
-					let radios = document.getElementsByTagName('input')
-					for (let j = 0; j < radios.length; j++) {
-						if (radios[j].checked) {
-							e.target.href = "https://fraidyc.at/s/#!/add?url=" + radios[j].value
-						}
-					}
-				}
-				setTimeout(() => window.close(), 100)
-			})
-		}
+    let links = document.getElementsByTagName('a')
+    for (let i = 0; i < links.length; i++) {
+      links[i].addEventListener('click', e => {
+        if (e.target === document.getElementById('addlink')) {
+          let radios = document.getElementsByTagName('input')
+          for (let j = 0; j < radios.length; j++) {
+            if (radios[j].checked) {
+              e.target.href = "https://fraidyc.at/s/#!/add?url=" + radios[j].value
+            }
+          }
+        }
+        setTimeout(() => window.close(), 100)
+      })
+    }
   } catch {}
 })
