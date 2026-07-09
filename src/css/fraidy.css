@@ -1146,6 +1146,17 @@ a.emoji {
   text-decoration: none;
 }
 
+.emoji-wrap {
+  position: relative;
+}
+
+.emoji-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+}
+
 @media only screen and (min-width: 600px) {
   input[type="text"], textarea {
     width: 300px;

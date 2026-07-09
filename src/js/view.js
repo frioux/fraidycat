@@ -1,14 +1,26 @@
 import { h } from 'preact'
-import { useState, useRef, useMemo, useLayoutEffect } from 'preact/hooks'
+import { useState, useRef, useMemo, useLayoutEffect, useEffect } from 'preact/hooks'
 import { followTitle, html2text, house, Importances } from './util'
 import { jsonDateParser } from "json-date-parser"
 import { Link, Route, Switch, matchPath, location } from './router'
 import { store, loadPosts, changeSetting, save, subscribe, confirmRemove,
   importFrom, exportTo } from './store'
-import EmojiButton from '@kickscondor/emoji-button'
+import { Picker } from 'emoji-picker-element'
+import emojiData from 'emoji-picker-element-data/en/emojibase/data.json'
 const frago = require('./frago')
 const url = require('url')
 import sparkline from './sparkline'
+
+// The emoji picker loads its data over the network by default, which the
+// extension's CSP forbids. Bundle the data instead and hand the picker a local
+// Blob URL (built lazily, the first time a picker opens).
+let emojiDataUrl = null
+function emojiDataSource() {
+  if (!emojiDataUrl)
+    emojiDataUrl = URL.createObjectURL(
+      new Blob([JSON.stringify(emojiData)], { type: 'application/json' }))
+  return emojiDataUrl
+}
 
 const FormFreeze = (e) => {
   e.preventDefault()
@@ -88,16 +100,32 @@ const WidenImages = (el) => {
 
 const FollowForm = ({ follow, isNew }) => {
   const [, bump] = useState(0)
-  const picker = useMemo(() => new EmojiButton(), [])
+  const [pickerOpen, setPickerOpen] = useState(false)
   const followRef = useRef(follow)
   followRef.current = follow
-  useLayoutEffect(() => {
-    picker.on('emoji', ch => {
+  const emojiAnchor = useRef()
+  useEffect(() => {
+    if (!pickerOpen) return
+    let picker = new Picker({ dataSource: emojiDataSource() })
+    picker.classList.add('emoji-panel')
+    let onPick = e => {
       let f = followRef.current
-      if (f.tags) { f.tags.push(ch) } else { f.tags = [ch] }
+      if (f.tags) { f.tags.push(e.detail.unicode) } else { f.tags = [e.detail.unicode] }
+      setPickerOpen(false)
       bump(n => n + 1)
-    })
-  }, [picker])
+    }
+    let onOutside = e => {
+      if (!emojiAnchor.current.contains(e.target)) setPickerOpen(false)
+    }
+    picker.addEventListener('emoji-click', onPick)
+    emojiAnchor.current.append(picker)
+    document.addEventListener('click', onOutside)
+    return () => {
+      picker.removeEventListener('emoji-click', onPick)
+      document.removeEventListener('click', onOutside)
+      picker.remove()
+    }
+  }, [pickerOpen])
 
   return follow && <form class="follow" onsubmit={FormFreeze}>
     {isNew &&
@@ -122,11 +150,13 @@ const FollowForm = ({ follow, isNew }) => {
       <label for="tags" class="optional">Tag(s) &mdash; separate with spaces</label>
       <input type="text" id="tags" value={follow.tags ? follow.tags.join(' ') : ''}
         oninput={e => e.target.value ? (follow.tags = e.target.value.trim().split(/\s+/)) : (delete follow.tags)} />
-      <a href="#" class="emoji" onclick={e => {
-        e.preventDefault()
-        if (picker.pickerVisible) picker.hidePicker()
-        else picker.showPicker(e.target)
-      }}>&#128513;</a>
+      <span class="emoji-wrap" ref={emojiAnchor}>
+        <a href="#" class="emoji" onclick={e => {
+          e.preventDefault()
+          e.stopPropagation()
+          setPickerOpen(o => !o)
+        }}>&#128513;</a>
+      </span>
       <p class="note">(If left blank, tag is assumed to be '&#x1f3e0;'&mdash;the main page tag.)</p>
     </div>
 

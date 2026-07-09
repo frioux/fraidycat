@@ -41,13 +41,14 @@
   "browserslist": "chrome >= 116",
   "dependencies": {
     "@xmldom/xmldom": "^0.7.5",
+    "emoji-picker-element": "^1.29.1",
+    "emoji-picker-element-data": "^1.8.0",
     "fraidyscrape": "^1.0.16",
     "json-date-parser": "^1.0.1",
     "normalize-url": "^7.0.2",
     "opml-generator": "^1.1.1"
   },
   "devDependencies": {
-    "@kickscondor/emoji-button": "^2.1.4",
     "@parcel/config-webextension": "2.13.3",
     "@parcel/transformer-image": "2.13.3",
     "@preact/signals": "^2.9.3",
