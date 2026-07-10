@@ -1,6 +1,10 @@
 const ent = require('ent/decode')
-let normalizeUrl = null
-import('normalize-url').then(x => normalizeUrl = x.default)
+// A *static* import: Parcel code-splits dynamic import() into a separate
+// async chunk, and a content script can't load that chunk (the injected
+// <script> registers in the page's main world, not the isolated world), so
+// `import('normalize-url')` fails with "Cannot find module". Static-importing
+// bundles it inline instead.
+import normalizeUrl from 'normalize-url'
 const sanitizeHtml = require('./sanitize')
 
 const house = "\u{1f3e0}"
