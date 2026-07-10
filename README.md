@@ -133,6 +133,13 @@ keep the tree free of dead code and unused dependencies. Both tools are
 self-contained (oxlint is a single binary; knip is dev-only) and never ship in
 the extension.
 
+GitHub Actions (`.github/workflows/ci.yml`) runs all of the above on every push
+and pull request. It also runs `npm run webext` first, so the tests validate the
+actual built bundle: the manifest parses, every load-critical file it references
+exists, and no content script contains bytes Chrome would reject as non-UTF-8.
+The bundle-validation tests only assert when `build/webext` exists, so run
+`npm run webext` before `npm test` locally to exercise them too.
+
 ### License
 
 Fraidycat is distributed under the Blue Oak Model License 1.0.0.

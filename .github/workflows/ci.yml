@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Lint (oxlint)
+        run: npm run lint
+
+      - name: Dead code (knip)
+        run: npm run deadcode
+
+      # Build the unpacked extension. This must run before `npm test` so the
+      # webext bundle validation tests (webext.test.js) have build/webext to
+      # check; without a build they skip. The build also runs the encoding
+      # sanitizer that keeps the content script Chrome-loadable.
+      - name: Build web extension
+        run: npm run webext
+
+      - name: Test (unit + webext bundle validation)
+        run: npm test
