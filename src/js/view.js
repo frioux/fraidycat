@@ -314,7 +314,14 @@ function lastPostTime(follow, sortPosts) {
 
 const Favicon = function(follow) {
   let src = null
-  try { src = url.resolve(follow.url, follow.photo || '/favicon.ico') } catch {}
+  try {
+    src = url.resolve(follow.url, follow.photo || '/favicon.ico')
+    // Upgrade http favicons to https so they don't trip mixed-content
+    // warnings when Fraidycat itself is served over https. Sites that
+    // don't support https fall back to globe.svg via the img onerror.
+    if (src.startsWith('http://'))
+      src = 'https://' + src.slice('http://'.length)
+  } catch {}
   return src || (new URL('../images/globe.svg', import.meta.url))
 }
 
