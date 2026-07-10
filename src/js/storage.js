@@ -589,13 +589,13 @@ module.exports = {
   },
 
   async urlDetails(url, tabId) {
-    let found = -1, id = urlToID(urlToNormal(url))
+    let found = -1, feed, id = urlToID(urlToNormal(url))
     if (!(id in this.all)) {
       found = 0
       try {
         let {site, tasks, error} = await this.scrapeLive(url, tabId)
         if (!error) {
-          let feed = tasks?.vars?.out
+          feed = tasks?.vars?.out
           if ((site && site !== "default") || feed?.posts?.length > 0) {
             found = 1
           } else if (feed?.sources) {
