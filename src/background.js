@@ -11,7 +11,7 @@
 //
 //  * Creates the offscreen document and makes sure it stays around.
 //  * Proxies browser API calls (storage, tabs, action, ...) on its behalf.
-//  * Relays messages from the Fraidycat page (a content script) to it.
+//  * Relays messages from the Fraidycat page (the bundled index.html) to it.
 //  * Forwards events (storage.onChanged, tabs.onUpdated, webRequest
 //    .onCompleted) to it.
 //  * Stands in for the old blocking webRequest listeners with
@@ -20,7 +20,9 @@
 //    iframes, and per-request rules that rewrite the User-Agent of the
 //    extension's own fetches.
 //
-const homepage = 'https://fraidyc.at/s/'
+// The Fraidycat UI is the extension's own bundled page, served from
+// chrome-extension://<id>/index.html - not the hosted fraidyc.at site.
+const homepage = chrome.runtime.getURL('index.html')
 
 //
 // The offscreen document. Creation is guarded so concurrent callers don't

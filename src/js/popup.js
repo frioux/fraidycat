@@ -13,6 +13,14 @@ function el(tag, attrs, ...children) {
 
 let params = new URLSearchParams(location.search)
 let feed = params.get("feed")
+
+// The Fraidycat UI is the extension's own bundled page. Point every link
+// in the popup at it; getURL() gives a stable chrome-extension:// URL.
+const appURL = chrome.runtime.getURL('index.html')
+document.getElementById('addlink').href = appURL + '#!/add'
+for (let a of document.getElementsByClassName('open'))
+  a.href = appURL
+
 chrome.tabs.query({active: true, currentWindow: true}, tabs => {
   let turl = tabs[0].url
   document.getElementById('add').firstChild.href += "?url=" + encodeURIComponent(turl)
@@ -46,7 +54,7 @@ chrome.tabs.query({active: true, currentWindow: true}, tabs => {
           let radios = document.getElementsByTagName('input')
           for (let j = 0; j < radios.length; j++) {
             if (radios[j].checked) {
-              e.target.href = "https://fraidyc.at/s/#!/add?url=" + radios[j].value
+              e.target.href = appURL + "#!/add?url=" + radios[j].value
             }
           }
         }

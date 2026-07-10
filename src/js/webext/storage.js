@@ -10,15 +10,15 @@
 //    runtime messaging, so every other browser API call here goes
 //    through the `proxy` method, which asks the service worker
 //    (src/background.js) to make the call.
-//  * The Fraidycat page itself - the content script on
-//    https://fraidyc.at/s/* and the settings page - which only uses
-//    `client` and `command` to talk to the background.
+//  * The Fraidycat page itself - the bundled index.html and the
+//    settings page - which only uses `client` and `command` to talk
+//    to the background.
 //
 import { jsonDateParser } from "json-date-parser"
 import { fixupHeaders, parseDom, xpathDom } from '../util'
 const browser = require("webextension-polyfill")
 const frago = require('../frago')
-const homepage = 'https://fraidyc.at/s/'
+const homepage = browser.runtime.getURL('index.html')
 
 const FIREFOX_QUOTA_BYTES_PER_ITEM = 8192;
 
