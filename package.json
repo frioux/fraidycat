@@ -52,6 +52,7 @@
     "@parcel/config-webextension": "2.13.3",
     "@parcel/transformer-image": "2.13.3",
     "@preact/signals": "^2.9.3",
+    "@webcomponents/custom-elements": "^1.6.0",
     "ava": "^3.15.0",
     "cross-env": "^7.0.3",
     "ent": "^2.2.0",
