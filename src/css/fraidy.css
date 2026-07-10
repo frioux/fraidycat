@@ -5,6 +5,14 @@
  */
 :root {
   --emoji: "Segoe UI Emoji", "Segoe UI Symbol", "Segoe UI", "Apple Color Emoji", "Noto Color Emoji", "EmojiOne Color", "Android Emoji";
+  /*
+   * Text stack. Inria Sans first, then a real sans-serif fallback, and only
+   * then the emoji fonts. The emoji fonts must come LAST: if they precede a
+   * normal fallback, missing glyphs (notably the space and digits 0-9, which
+   * Apple Color Emoji provides) render huge and mis-spaced. Emoji codepoints
+   * still resolve to --emoji since sans-serif lacks them.
+   */
+  --sans: 'Inria Sans', system-ui, sans-serif, var(--emoji);
 }
 
 .theme--auto,
@@ -132,7 +140,7 @@
 
 html {
   overflow-y: scroll;
-  font-family: var(--emoji);
+  font-family: var(--sans);
 }
 
 body {
@@ -164,7 +172,7 @@ ul {
 article {
   /* max-width: 780px; */
   padding: 20px 40px 60px 40px;
-  font-family: 'Inria Sans', var(--emoji);
+  font-family: var(--sans);
   font-size: 1.1rem;
   min-height: 100%;
 
@@ -1126,7 +1134,7 @@ input, textarea {
 }
 
 input, textarea, select, button {
-  font-family: "Inria Sans", var(--emoji);
+  font-family: var(--sans);
 }
 
 input[type="checkbox"] {
