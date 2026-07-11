@@ -1,8 +1,27 @@
-const { DOMImplementation, XMLSerializer } = require('@xmldom/xmldom')
-
+//
+// src/js/sanitize.js
+//
+// Recursively walk a DOM node, letting `fn` decide (and rewrite) each element,
+// then serialize whatever survives back to an HTML string.
+//
+// This always runs on a *native* DOM node - the offscreen document and the UI
+// page both have one, and the input comes from the native DOMParser - so it
+// uses native APIs directly (el.ownerDocument, innerHTML) rather than a
+// third-party DOM implementation.
+//
 module.exports = function(el, fn) {
   let san = sanitize(el, fn)
-  return (new XMLSerializer()).serializeToString(san)
+  if (!san)
+    return ''
+  //
+  // The result is rendered via dangerouslySetInnerHTML, so serialize with the
+  // HTML algorithm (innerHTML) rather than XML: void tags stay `<br>`, no
+  // xmlns namespace is added, and it round-trips through the HTML parser
+  // unchanged.
+  //
+  let holder = san.ownerDocument.createElement('div')
+  holder.appendChild(san)
+  return holder.innerHTML
 }
 
 function sanitize(el, fn) {
@@ -36,8 +55,7 @@ function domArray(el) {
   if (!el.hasChildNodes()) return
   if (el.childNodes.length == 1) return el.childNodes.item(0)
 
-  let doc = (new DOMImplementation()).createDocument()
-  let frag = doc.createDocumentFragment()
+  let frag = el.ownerDocument.createDocumentFragment()
   let child = el.firstChild
   while (child) {
     let child2 = child.nextSibling
@@ -46,4 +64,3 @@ function domArray(el) {
   }
   return frag
 }
-
