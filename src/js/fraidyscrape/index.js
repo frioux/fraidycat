@@ -10,14 +10,16 @@
 //   const fraidyscrape = require('./fraidyscrape')
 //   let scraper = new fraidyscrape(defs, domParser, xpathFn)
 //
-// `normalize-url` is imported as ESM (v7 is pure ESM) to match the rest of the
-// app; the options used below behave identically to the v6 the package shipped.
+// This stays plain CommonJS so it can be required directly by the unit tests.
+// `normalize-url` v7 is pure ESM; both Parcel and Node (which supports
+// require() of synchronous ESM) hand it back as a namespace, so we reach the
+// callable through `.default`. The options used below behave identically to
+// the v6 the package originally shipped.
 //
-import normalizeUrl from 'normalize-url'
+const normalizeUrl = require('normalize-url').default
 const entDecode = require('ent/decode')
 const entEncode = require('ent/encode')
 const jp = require('jsonpath/jsonpath.min.js')
-const urlp = require('url')
 const unkZones = require('./unkZones.js')
 
 module.exports = F
@@ -73,6 +75,43 @@ async function responseToObject (resp) {
 
 function urlToNormal (link) {
   return normalizeUrl(link, {stripProtocol: true, removeDirectoryIndex: true, stripHash: true})
+}
+
+//
+// Native-URL replacements for the old Node `url` polyfill. The legacy
+// url.parse/resolve/format never threw on junk input, so these fall back to a
+// best-effort value rather than blowing up a scrape.
+//
+function resolveUrl (base, to) {
+  try {
+    return new URL(to, base).href
+  } catch {
+    return to
+  }
+}
+
+function hostnameOf (link) {
+  try {
+    return new URL(link).hostname
+  } catch {
+    return ''
+  }
+}
+
+//
+// Rebuild a request URL, layering an optional `query` object on top. Mirrors
+// the old url.parse()/format() round-trip: an existing querystring on the URL
+// wins, and the `query` object is only serialized in when the URL had none.
+//
+function formatUrl (base, query) {
+  try {
+    let u = new URL(base)
+    if (query && !u.search)
+      u.search = new URLSearchParams(query).toString()
+    return u.href
+  } catch {
+    return base
+  }
 }
 
 F.prototype.addWatch = function (url, entry) {
@@ -225,7 +264,7 @@ F.prototype.assign = function (options, additions, vars, mods, plainValue) {
         } else if (trans === 'slug') {
           val = '#' + encodeURIComponent(val)
         } else if (trans === 'url') {
-          val = urlp.resolve(vars['url'], val)
+          val = resolveUrl(vars['url'], val)
         } else if (trans === 'decode-uri') {
           val = decodeURI(val)
         } else if (trans === 'encode-uri') {
@@ -275,7 +314,7 @@ F.prototype.setupRequest = function (tasks, req) {
     {url: req.url || tasks.vars.url, headers: {}, credentials: 'omit'},
     tasks.vars)
   if (this.options.domains) {
-    this.assign(options, this.options.domains[urlp.parse(options.url).hostname],
+    this.assign(options, this.options.domains[hostnameOf(options.url)],
       tasks.vars)
   }
 
@@ -283,11 +322,10 @@ F.prototype.setupRequest = function (tasks, req) {
     this.assign(options, req.request, tasks.vars)
   }
 
-  let url = urlp.parse(options.url)
-  url.query = options.query
+  let url = formatUrl(options.url, options.query)
   delete options.url
   delete options.query
-  return {url: urlp.format(url), options,
+  return {url, options,
     render: req.render && req.render.concat()}
 }
 

@@ -8,7 +8,6 @@ import { store, loadPosts, changeSetting, save, subscribe, confirmRemove,
 import { Picker } from 'emoji-picker-element'
 import emojiData from 'emoji-picker-element-data/en/emojibase/data.json'
 const frago = require('./frago')
-const url = require('url')
 import sparkline from './sparkline'
 
 // The emoji picker loads its data over the network by default, which the
@@ -315,7 +314,7 @@ function lastPostTime(follow, sortPosts) {
 const Favicon = function(follow) {
   let src = null
   try {
-    src = url.resolve(follow.url, follow.photo || '/favicon.ico')
+    src = new URL(follow.photo || '/favicon.ico', follow.url).href
     // Upgrade http favicons to https so they don't trip mixed-content
     // warnings when Fraidycat itself is served over https. Sites that
     // don't support https fall back to globe.svg via the img onerror.
