@@ -43,6 +43,15 @@ const ATTR_SRC = 2
 const ATTR_HREF = 3
 
 //
+// Schemes allowed once a value has been resolved as a (possibly relative) URL.
+// This backstops the regexes below: a scheme with no `//` - javascript:,
+// data:, vbscript: - matches neither, so it falls into the relative-URL branch
+// where new URL() would otherwise accept it as an absolute URL and keep it.
+//
+const SAFE_SRC_PROTOCOLS = ['http:', 'https:', 'hyper:']
+const SAFE_HREF_PROTOCOLS = ['http:', 'https:', 'ftp:', 'mailto:', 'hyper:']
+
+//
 // Sanitize some attributes where a range of options is allowed
 // TODO: Scan 'style' attributes for acceptable CSS.
 //
@@ -84,7 +93,11 @@ function sanitizeAttr(ele, name, type, attr, url) {
             return false
           }
         } else {
-          val = new URL(val, url).toString()
+          let resolved = new URL(val, url)
+          if (!SAFE_SRC_PROTOCOLS.includes(resolved.protocol)) {
+            return false
+          }
+          val = resolved.toString()
         }
       break
       case ATTR_HREF:
@@ -100,8 +113,12 @@ function sanitizeAttr(ele, name, type, attr, url) {
             return false
           }
         } else {
+          let resolved = new URL(val, url)
+          if (!SAFE_HREF_PROTOCOLS.includes(resolved.protocol)) {
+            return false
+          }
           attr.target = '_blank'
-          val = new URL(val, url).toString()
+          val = resolved.toString()
         }
       break
     }

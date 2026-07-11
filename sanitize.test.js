@@ -89,16 +89,26 @@ test('an out-of-range img dimension is dropped', t => {
 })
 
 //
-// KNOWN GAP (pre-existing, tracked separately): URL schemes without `//`
-// - javascript:, data:, vbscript: - miss the allow-list regex in sanitizeAttr
-// and fall through the "relative" branch, where new URL() keeps them. These
-// `.failing` tests document the desired behavior and will flag when it is
-// fixed. See ATTR_HREF / ATTR_SRC in util.js.
+// Dangerous URL schemes are rejected. Schemes with no `//` (javascript:,
+// data:, vbscript:) match neither allow-list regex, so the resolved-protocol
+// check in sanitizeAttr is what stops them from surviving as "relative" URLs.
 //
-test.failing('SHOULD strip a javascript: href', t => {
+test('strips a javascript: href', t => {
   t.false(clean('<a href="javascript:evil()">x</a>').includes('javascript:'))
 })
 
-test.failing('SHOULD strip an iframe with a data: src', t => {
+test('strips a vbscript: href', t => {
+  t.false(clean('<a href="vbscript:msgbox(1)">x</a>').includes('vbscript:'))
+})
+
+test('strips an iframe with a data: src', t => {
   t.false(clean('<iframe src="data:text/html,<script>evil()</script>"></iframe>').includes('data:'))
+})
+
+test('strips a data: img src', t => {
+  t.false(clean('<img src="data:image/svg+xml,<svg onload=evil()>">').includes('data:'))
+})
+
+test('still keeps a mailto: link (allowed scheme, no //)', t => {
+  t.regex(clean('<a href="mailto:hi@example.com">mail</a>'), /href="mailto:hi@example\.com"/)
 })
