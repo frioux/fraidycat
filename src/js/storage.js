@@ -19,7 +19,7 @@
 const { followTitle, house, html2text, getIndexById, Importances,
   sanitize, urlToID, urlToNormal, isValidFollow } = require('./util')
 
-const fraidyscrape = require('fraidyscrape')
+const fraidyscrape = require('./fraidyscrape')
 const og = require('opml-generator')
 const frago = require('./frago')
 

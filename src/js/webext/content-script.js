@@ -2,7 +2,7 @@ import { parseDom, xpathDom } from '../util'
 import { jsonDateParser } from "json-date-parser"
 
 const browser = require('webextension-polyfill')
-const fraidyscrape = require('fraidyscrape')
+const fraidyscrape = require('../fraidyscrape')
 
 let extURL = browser.runtime.getURL('/').replace(/\/$/, '')
 
