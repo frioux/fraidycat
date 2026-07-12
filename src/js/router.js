@@ -8,6 +8,7 @@
 //
 import { h } from 'preact'
 import { signal } from '@preact/signals'
+import { safeHref } from './util'
 const { parseHash, matchPath } = require('./router-match')
 
 export { matchPath }
@@ -46,10 +47,12 @@ export const Switch = ({ children }) => {
 }
 
 //
-// <Link to class ...> - an <a> that navigates. Absolute targets get the `#!`
-// hash prefix; anything else (external URLs) passes through untouched.
+// <Link to class ...> - an <a> that navigates. Internal routes (starting with
+// `/`) get the `#!` hash prefix; external URLs are vetted by safeHref so a
+// javascript:/data: value (e.g. from an imported or synced follow URL) can't
+// become a live link.
 //
 export const Link = ({ to, children, onclick, ...rest }) => {
-  let href = (to && to.startsWith('/') ? '#!' : '') + to
+  let href = to && to.startsWith('/') ? '#!' + to : safeHref(to)
   return <a href={href} onclick={onclick} {...rest}>{children}</a>
 }
