@@ -52,6 +52,26 @@ const SAFE_SRC_PROTOCOLS = ['http:', 'https:', 'hyper:']
 const SAFE_HREF_PROTOCOLS = ['http:', 'https:', 'ftp:', 'mailto:', 'hyper:']
 
 //
+// Vet a scraped URL before it becomes an <a href>. Returns the URL when its
+// scheme is safe to navigate to, or undefined otherwise (Preact drops the
+// attribute entirely on undefined). A value with no scheme parses as a relative
+// URL and is kept as-is; javascript:, data: and vbscript: parse as absolute
+// URLs whose protocol fails the whitelist and are rejected. Native URL parsing
+// handles the whitespace/control-char tricks (java\tscript:) that regexes miss.
+//
+function safeHref(url) {
+  if (typeof url !== 'string')
+    return undefined
+  let resolved
+  try {
+    resolved = new URL(url)
+  } catch (e) {
+    return url
+  }
+  return SAFE_HREF_PROTOCOLS.includes(resolved.protocol) ? url : undefined
+}
+
+//
 // Sanitize some attributes where a range of options is allowed
 // TODO: Scan 'style' attributes for acceptable CSS.
 //
@@ -304,5 +324,5 @@ function xpathDom(doc, node, path, asText, ns) {
 }
 
 module.exports = {fixupHeaders, followTitle, getIndexById, house,
-  html2text, innerHtmlDom, isValidFollow, parseDom, sanitize,
+  html2text, innerHtmlDom, isValidFollow, parseDom, safeHref, sanitize,
   urlToID, urlToNormal, xpathDom, Importances}

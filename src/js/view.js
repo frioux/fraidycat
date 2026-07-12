@@ -1,6 +1,6 @@
 import { h } from 'preact'
 import { useState, useRef, useMemo, useLayoutEffect, useEffect } from 'preact/hooks'
-import { followTitle, html2text, house, Importances } from './util'
+import { followTitle, html2text, house, safeHref, Importances } from './util'
 import { jsonDateParser } from "json-date-parser"
 import { Link, Route, Switch, matchPath, location } from './router'
 import { store, loadPosts, changeSetting, save, subscribe, confirmRemove,
@@ -489,7 +489,7 @@ const ListFollow = ({ match }) => {
               <Link to={viewUrl} class="url">{followTitle(follow)}</Link>
               <Link class="ext" to={follow.url} target="_blank"><img src={new URL('../images/link.svg', import.meta.url)} width="16" target="_blank" /></Link>
               {follow.status instanceof Array && follow.status.map(st =>
-                <a class={`status status-${st.type}`} ref={toggleHoverRef} href={st.url || follow.url} target="_blank"
+                <a class={`status status-${st.type}`} ref={toggleHoverRef} href={safeHref(st.url) || safeHref(follow.url)} target="_blank"
                   >{st.type === 'live' ? <span><img src={new URL('../images/rec.svg', import.meta.url)} width="12" /> LIVE</span> : <span><img src={new URL('../images/notepad.svg', import.meta.url)} width="16" /></span>}
                   <div>{st.title || st.text || html2text(st.html || '')}
                     {st[sortPosts] && <span class="ago">{timeAgo(st[sortPosts], now)}</span>}</div>
@@ -506,7 +506,7 @@ const ListFollow = ({ match }) => {
                     slice(0, follow.limit || 10).map(f => {
                       return <li class={timeDarkness(f[sortPosts], now)}>
                         {f.author && f.author !== follow.author && <span class="author">{f.author}</span>}
-                        {f.url.startsWith('id:') ? <span class="txt">{TitleTrunc(f.title)}</span> : <a href={f.url}>{TitleTrunc(f.title)}</a>}
+                        {f.url.startsWith('id:') ? <span class="txt">{TitleTrunc(f.title)}</span> : <a href={safeHref(f.url)}>{TitleTrunc(f.title)}</a>}
                         {!f.index && <span class="ago">{timeAgo(f[sortPosts], now)}</span>}
                       </li>
                   })}
