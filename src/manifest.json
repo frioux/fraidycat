@@ -2,7 +2,6 @@
   "manifest_version": 3,
   "name": "Scaredycat",
   "short_name": "Scaredycat",
-  "key": "hecfkgekabkkhiidlinmifelhdooeool",
   "version": "1.2.0",
   "minimum_chrome_version": "116",
   "description": "Follow from afar.",
