@@ -1,4 +1,12 @@
-const ent = require('ent/decode')
+//
+// Decode HTML entities in a text string. Literal `<` is escaped first so the
+// parser treats the whole input as text; this replaces the `ent` package,
+// whose modern dependency chain (get-intrinsic, function-bind) references
+// eval and the Function constructor - flagged by `web-ext lint`.
+//
+function decodeEntities (str) {
+  return parseDom(String(str).replace(/</g, '&lt;'), 'text/html').documentElement.textContent
+}
 // A *static* require: Parcel code-splits dynamic import() into a separate
 // async chunk, and a content script can't load that chunk (the injected
 // <script> registers in the page's main world, not the isolated world), so
@@ -260,9 +268,9 @@ function sanitize(html, url) {
 function html2text (html) {
   if (html.replace)
     html = html.replace(/[a-z]+:\/\//g, ' ')
-  let div = document.createElement('div')
-  div.innerHTML = html
-  return div.textContent
+  // DOMParser rather than innerHTML: the parsed document is inert, so
+  // resources in feed-supplied markup are never fetched while stripping tags.
+  return parseDom(html, 'text/html').documentElement.textContent
 }
 
 function urlToNormal (link, stripHash) {
@@ -294,7 +302,7 @@ function parseDom(str, mime) {
 }
 
 function innerHtmlDom(node) {
-  let v = node.value || (node.nodeValue && ent(node.nodeValue))
+  let v = node.value || (node.nodeValue && decodeEntities(node.nodeValue))
   if (v) return v
 
   if (node.hasChildNodes())
@@ -302,7 +310,7 @@ function innerHtmlDom(node) {
     v = ''
     for (let c = 0; c < node.childNodes.length; c++) {
       let n = node.childNodes[c]
-      v += n.value || (n.nodeValue ? ent(n.nodeValue) : n.innerHTML)
+      v += n.value || (n.nodeValue ? decodeEntities(n.nodeValue) : n.innerHTML)
     }
   }
   return v

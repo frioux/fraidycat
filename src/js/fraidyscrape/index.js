@@ -17,8 +17,11 @@
 // the v6 the package originally shipped.
 //
 const normalizeUrl = require('normalize-url').default
-const entDecode = require('ent/decode')
-const entEncode = require('ent/encode')
+// `he` rather than `ent`: ent's dependency chain (get-intrinsic,
+// function-bind) references eval and the Function constructor, which
+// `web-ext lint` flags in every bundle. he is dependency-free and works
+// without a DOM, which the service worker and the Node tests both need.
+const he = require('he')
 const jp = require('jsonpath/jsonpath.min.js')
 const unkZones = require('./unkZones.js')
 
@@ -270,9 +273,9 @@ F.prototype.assign = function (options, additions, vars, mods, plainValue) {
         } else if (trans === 'encode-uri') {
           val = encodeURI(val)
         } else if (trans === 'html-to-text') {
-          val = entDecode(val)
+          val = he.decode(val.toString())
         } else if (trans === 'text-to-html') {
-          val = entEncode(val)
+          val = he.encode(val.toString(), {useNamedReferences: true})
         } else if (trans.startsWith('valid-now')) {
           let d = new Date(), field = trans.split(':')[1]
           val = val.filter(x => x[field] < d)

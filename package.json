@@ -42,7 +42,7 @@
   "dependencies": {
     "emoji-picker-element": "^1.29.1",
     "emoji-picker-element-data": "^1.8.0",
-    "ent": "^2.2.0",
+    "he": "^1.2.0",
     "json-date-parser": "^1.0.1",
     "jsonpath": "^1.1.1",
     "normalize-url": "^7.0.2",
