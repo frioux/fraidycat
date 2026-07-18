@@ -141,3 +141,28 @@ buildTest('no built JS file contains Chrome-illegal code units', t => {
   }
   t.deepEqual(offenders, [], `illegal code units found in: ${offenders.join(', ')}`)
 })
+
+//
+// The Firefox manifest derivation (scripts/make-firefox-webext.js). Chrome
+// warns at load time about Firefox-only manifest keys, so build/webext stays
+// pure Chrome and the lint target gets this rewritten copy.
+//
+const { firefoxManifest } = require('./scripts/make-firefox-webext')
+
+test('firefoxManifest swaps the service worker for background.scripts', t => {
+  const ff = firefoxManifest({ name: 'x', background: { service_worker: 'background.abc123.js' } })
+  t.deepEqual(ff.background, { scripts: ['background.abc123.js'] })
+  t.is(ff.background.service_worker, undefined)
+})
+
+test('firefoxManifest adds the gecko ID and data-collection disclosure', t => {
+  const ff = firefoxManifest({ background: { service_worker: 'bg.js' } })
+  t.is(ff.browser_specific_settings.gecko.id, 'scaredycat@frew.co')
+  t.deepEqual(ff.browser_specific_settings.gecko.data_collection_permissions, { required: ['none'] })
+})
+
+test('firefoxManifest leaves the source manifest untouched', t => {
+  const src = { name: 'x', background: { service_worker: 'bg.js' } }
+  firefoxManifest(src)
+  t.deepEqual(src, { name: 'x', background: { service_worker: 'bg.js' } })
+})

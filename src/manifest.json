@@ -27,16 +27,7 @@
     "matches": ["<all_urls>"]
   }],
   "background": {
-    "service_worker": "background.js",
-    "scripts": ["background.js"]
-  },
-  "browser_specific_settings": {
-    "gecko": {
-      "id": "scaredycat@frew.co",
-      "data_collection_permissions": {
-        "required": ["none"]
-      }
-    }
+    "service_worker": "background.js"
   },
   "action": {
     "default_title": "Scaredycat",
