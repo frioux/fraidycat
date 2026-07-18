@@ -630,7 +630,6 @@ export const App = () => {
         <img src={new URL('../images/fc.png', import.meta.url)} />
       </div>
       <div id="loading">
-        <img src={new URL('../images/catspace.webp', import.meta.url)} alt="..." />
         <p>LOADING</p>
       </div>
     </div>
