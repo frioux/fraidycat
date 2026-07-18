@@ -325,7 +325,7 @@ class WebextStorage {
             feed.sources = feed.sources.slice(0, 5)
           }
           this.proxy('action.setIcon', {tabId, path: "images/portrait.png"})
-          this.proxy('action.setTitle', {tabId, title: "Follow with Fraidycat"})
+          this.proxy('action.setTitle', {tabId, title: "Follow with Scaredycat"})
           this.proxy('action.setPopup', {tabId, popup: "popup.html?feed=" +
             encodeURIComponent(JSON.stringify(feed))})
         } catch {}

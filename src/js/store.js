@@ -33,7 +33,7 @@ function update(patch) {
   if (patch.op === 'exported') {
     let data = "data:" + patch.mimeType + ";charset=UTF-8," + encodeURIComponent(patch.contents)
     let link = document.createElement('a')
-    link.setAttribute('download', 'fraidycat.' + patch.format)
+    link.setAttribute('download', 'scaredycat.' + patch.format)
     link.setAttribute('href', data)
     document.body.appendChild(link)
     link.click()

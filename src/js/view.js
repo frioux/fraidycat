@@ -523,7 +523,7 @@ const ListFollow = ({ match }) => {
       })}</ol> :
         <div class="intro">
           <h3>Ready?</h3>
-          <p>Let's get Fraidycat going, yeah?</p>
+          <p>Let's get Scaredycat going, yeah?</p>
           <p>Click the <Link to={addLink} class="pink" title="Add a Follow"><img src={new URL('../images/add.svg', import.meta.url)} width="16" /></Link> button to add someone!</p>
           <p>Or, click the <Link to="/settings" title="Settings"><img src={new URL('../images/gear.svg', import.meta.url)} width="16" /></Link> to import a bunch.</p>
           <p><em>Hey! Follows added to this <strong>Realtime</strong> page will highlight the tab when there are new posts!</em></p>
@@ -586,10 +586,10 @@ const ImportFrom = (format) => {
 const ChangeSettings = () => {
   return <div id="settings">
     <div class="about">
-      <a href="https://fraidyc.at/"><img src={new URL('../images/flatcat-512.png', import.meta.url)} alt="Fraidycat" title="Fraidycat" /></a>
-      <h2><a href="https://fraidyc.at/">fraidyc.at</a></h2>
+      <a href="https://github.com/frioux/fraidycat"><img src={new URL('../images/flatcat-512.png', import.meta.url)} alt="Scaredycat" title="Scaredycat" /></a>
+      <h2><a href="https://github.com/frioux/fraidycat">scaredycat</a></h2>
       <p>Follow the <em>whole</em> Web.</p>
-      <p class="report">Report bugs and ideas <a href="https://github.com/kickscondor/fraidycat/issues">here</a>.</p>
+      <p class="report">Report bugs and ideas <a href="https://github.com/frioux/fraidycat/issues">here</a>.</p>
     </div>
     <form onsubmit={e => e.preventDefault()}>
     <input type="file" id="fileImp" style="display: none" name=""
@@ -599,7 +599,7 @@ const ChangeSettings = () => {
       <p><strong>JSON:</strong>
         <button onclick={e => ImportFrom('json')}>Full Import</button>
         <button onclick={e => exportTo('json')}>Full Export</button></p>
-      <p class="note">This will save <em>all</em> of your Fraidycat settings.</p>
+      <p class="note">This will save <em>all</em> of your Scaredycat settings.</p>
     </div>
     <div>
       <p>
@@ -679,7 +679,7 @@ export const App = () => {
             <li><Link to="/settings" title="Settings"><img src={new URL('../images/gear.svg', import.meta.url)} width="16" /></Link></li>
           </ul>}
         </div>
-        <h1><Link to="/"><img src={logo} alt="Fraidycat" title="Fraidycat" /></Link></h1>
+        <h1><Link to="/"><img src={logo} alt="Scaredycat" title="Scaredycat" /></Link></h1>
       </header>
       <section>
         <Switch>

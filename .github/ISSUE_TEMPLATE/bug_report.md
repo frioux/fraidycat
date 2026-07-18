@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Discovered lice hopping about in Fraidycat's luxurious coat?
+about: Discovered lice hopping about in Scaredycat's luxurious coat?
 title: ''
 labels: bug
 assignees: kickscondor
@@ -9,7 +9,7 @@ assignees: kickscondor
 
 **Before you start.**
 <!-- Replace [ ] with [x] to mark the below.-->
-* [ ] I have checked the [Common Problems](https://github.com/kickscondor/fraidycat/wiki/Common-Problems) page.
+* [ ] I have checked the [Common Problems](https://github.com/frioux/fraidycat/wiki/Common-Problems) page.
 * [ ] I have searched the issue tracker for a bug that matches the one I want to file, without success.
 
 **Desktop (please complete the following information):**

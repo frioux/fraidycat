@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Fraidycat",
-  "short_name": "Fraidycat",
+  "name": "Scaredycat",
+  "short_name": "Scaredycat",
   "key": "hecfkgekabkkhiidlinmifelhdooeool",
   "version": "1.2.0",
   "minimum_chrome_version": "116",
   "description": "Follow from afar.",
-  "homepage_url": "https://fraidyc.at/",
+  "homepage_url": "https://github.com/frioux/fraidycat",
   "icons": {
     "32": "images/flatcat-32.png",
     "48": "images/flatcat-48.png",
@@ -30,7 +30,7 @@
     "service_worker": "background.js"
   },
   "action": {
-    "default_title": "Fraidycat",
+    "default_title": "Scaredycat",
     "default_icon": {
       "16": "images/flatcat-16.png",
       "32": "images/flatcat-32.png",

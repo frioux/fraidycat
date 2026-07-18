@@ -36,7 +36,7 @@ async function ensureOffscreen() {
     creating = chrome.offscreen.createDocument({
       url: 'offscreen.html',
       reasons: ['DOM_PARSER', 'DOM_SCRAPING', 'IFRAME_SCRIPTING'],
-      justification: 'Fraidycat periodically fetches and scrapes the feeds ' +
+      justification: 'Scaredycat periodically fetches and scrapes the feeds ' +
         '(RSS, social media) that you follow. Some sites can only be read ' +
         'by rendering them in an iframe.'
     }).catch(err => {

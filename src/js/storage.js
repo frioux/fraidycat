@@ -797,7 +797,7 @@ module.exports = {
           item.title = follow.title
         outlines.push(item)
       }
-      contents = og({title: "Fraidycat Follows", dateCreated: new Date()}, outlines)
+      contents = og({title: "Scaredycat Follows", dateCreated: new Date()}, outlines)
 
     } else if (msg.format === 'html') {
       //
@@ -848,8 +848,8 @@ module.exports = {
 
       contents = elem('div', null,
         elem('meta', {'Content-Type': 'text/html; charset=UTF-8'}),
-        elem('title', null, 'Fraidycat Links'),
-        elem('h1', null, 'Fraidycat Follows'),
+        elem('title', null, 'Scaredycat Links'),
+        elem('h1', null, 'Scaredycat Follows'),
         dl).innerHTML
 
     } else {
