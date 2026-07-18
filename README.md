@@ -13,11 +13,11 @@
             | ||   | ||
             '-''   '-''                            :. :.
 
-**Scaredycat** is a browser extension (Chrome/Firefox, Manifest V3) for
-following folks on a variety of platforms. But rather than showing you a
-traditional 'inbox' or 'feed' view of all the incoming posts - Scaredycat
-braces itself against this unbridled firehose! - you are shown an overview
-of who is active and a brief summary of their activity.
+**Scaredycat** is a browser extension for following folks on a variety of
+platforms. But rather than showing you a traditional 'inbox' or 'feed' view of
+all the incoming posts - Scaredycat braces itself against this unbridled
+firehose! - you are shown an overview of who is active and a brief summary of
+their activity.
 
 It is a fork of [Kicks Condor's Fraidycat](https://github.com/kickscondor/fraidycat).
 
