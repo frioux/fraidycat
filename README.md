@@ -76,3 +76,6 @@ exercise the bundle-validation tests too.
 
 Scaredycat is distributed under the Blue Oak Model License 1.0.0.
 Read it [here](LICENSE.md).
+
+The cat icon is 🐈 from [OpenMoji](https://openmoji.org) — the open-source
+emoji and icon project. License: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
