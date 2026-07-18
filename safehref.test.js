@@ -7,7 +7,7 @@
 // thing standing between a malicious scraped URL and a rendered javascript:
 // link.
 //
-const test = require('ava')
+const test = require('ava').default
 const { safeHref } = require('./src/js/util')
 
 //

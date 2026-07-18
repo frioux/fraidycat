@@ -8,7 +8,7 @@
 // to but not identical to Chrome's, so these assert the sanitizer's *policy*
 // (what survives, what is stripped) rather than exact whitespace.
 //
-const test = require('ava')
+const test = require('ava').default
 const { parseHTML } = require('linkedom')
 const { sanitize } = require('./src/js/util')
 

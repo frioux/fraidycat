@@ -6,7 +6,7 @@
 // defs/social.json - dot paths, quoted keys, wildcards, indexes, slices and
 // filters - plus the failure mode for syntax outside the supported subset.
 //
-const test = require('ava')
+const test = require('ava').default
 const jp = require('./src/js/jsonpath')
 
 const doc = {

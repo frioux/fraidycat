@@ -7,7 +7,7 @@
 // pipeline directly. (The HTML/XML paths need a browser DOMParser + xpath and
 // are covered by the app at runtime rather than here.)
 //
-const test = require('ava')
+const test = require('ava').default
 const F = require('./src/js/fraidyscrape')
 const defs = require('./defs/social.json')
 
