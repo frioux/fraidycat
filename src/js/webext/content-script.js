@@ -27,6 +27,8 @@ async function scrapeMessage(data, options = null) {
 // of TikTok and other sites that require rendering.
 //
 window.addEventListener('message', async e => {
+  if (e.origin !== extURL)
+    return
   try {
     let response = await scrapeMessage(e.data)
     e.source.postMessage(response, extURL)

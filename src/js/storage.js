@@ -81,6 +81,11 @@ module.exports = {
   //
   // Logging convenience methods
   //
+  log(msg, level) {
+    let fn = {ERROR: 'error', WARN: 'warn', DEBUG: 'debug'}[level] || 'log'
+    console[fn](msg)
+  },
+
   info(msg) {
     this.log(msg)
   },

@@ -299,8 +299,18 @@ class WebextStorage {
     })
 
     window.addEventListener('message', e => {
-      let {url, tasks, error} = this.decode(e.data)
-      this.scraper.updateWatch(url, tasks, error)
+      //
+      // Frames nested inside a scraped site can post here too - only
+      // act on messages that decode to a scrape response.
+      //
+      let url, tasks, error
+      try {
+        ({url, tasks, error} = this.decode(e.data))
+      } catch {
+        return
+      }
+      if (url)
+        this.scraper.updateWatch(url, tasks, error)
     }, false)
 
     //
