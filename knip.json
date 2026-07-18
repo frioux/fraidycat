@@ -10,6 +10,7 @@
   "project": ["src/**/*.js"],
   "ignoreExportsUsedInFile": true,
   "ignoreDependencies": [
+    "buffer",
     "process",
     "@parcel/config-webextension",
     "@parcel/transformer-image",
