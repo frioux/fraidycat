@@ -40,8 +40,8 @@
   --button: #EECCAA;
   --rule: #CCCC77;
   --paper: #FFFFFF;
-  --sparkfreshline: #FF0099;
-  --sparkfreshfill: #FFC0CB;
+  --sparkfreshline: #FF6600;
+  --sparkfreshfill: #FFDAB9;
   --sparkoldline: #9999BB;
   --sparkoldfill: #ACC0CB;
   --notice: #997755;
@@ -68,14 +68,14 @@
   --latestold: #779955;
   --spanold: #779955;
   --tabold: #AADDBB;
-  --titlefresh: #FFCCCC;
-  --latestfresh: #EE77BB;
-  --spanfresh: #EE77BB;
-  --tabfresh: #FF99DD;
+  --titlefresh: #FFDDBB;
+  --latestfresh: #EE9944;
+  --spanfresh: #EE9944;
+  --tabfresh: #FFAA66;
   --border: #005566;
   --button: #003F34;
   --rule: #005566;
-  --paper: #550022;
+  --paper: #552200;
   --sparkfreshline: #00FFFF;
   --sparkfreshfill: #003F34;
   --sparkoldline: #BB9999;
@@ -84,7 +84,7 @@
   --progress: #997755;
   --edge: #000000;
   --backmute-fade: rgba(24, 24, 24, 0);
-  --paper-fade: rgba(85, 0, 34, 0);
+  --paper-fade: rgba(85, 34, 0, 0);
   }
 }
 
@@ -104,14 +104,14 @@
   --latestold: #779955;
   --spanold: #779955;
   --tabold: #AADDBB;
-  --titlefresh: #FFCCCC;
-  --latestfresh: #EE77BB;
-  --spanfresh: #EE77BB;
-  --tabfresh: #FF99DD;
+  --titlefresh: #FFDDBB;
+  --latestfresh: #EE9944;
+  --spanfresh: #EE9944;
+  --tabfresh: #FFAA66;
   --border: #005566;
   --button: #003F34;
   --rule: #005566;
-  --paper: #550022;
+  --paper: #552200;
   --sparkfreshline: #00FFFF;
   --sparkfreshfill: #003F34;
   --sparkoldline: #BB9999;
@@ -120,7 +120,7 @@
   --progress: #997755;
   --edge: #000000;
   --backmute-fade: rgba(24, 24, 24, 0);
-  --paper-fade: rgba(85, 0, 34, 0);
+  --paper-fade: rgba(85, 34, 0, 0);
 }
 
 /* Background pattern per theme. (A url() can't live in a custom property
@@ -208,9 +208,9 @@ div.intro {
     text-decoration: none;
     margin: 15px 5px;
 
-    &.pink {
+    &.orange {
       padding: 7px 9px;
-      background-color: #FF0099;
+      background-color: #FF6600;
       border-radius: 18px;
       font-weight: bold;
       color: white;
@@ -228,7 +228,7 @@ div.intro {
   display: inline;
 
   a {
-    color: #F09;
+    color: #F60;
     text-decoration: underline;
   }
 }
@@ -556,7 +556,7 @@ div.intro {
 
 			&.active {
 				font-size: 1.4rem;
-				background: #F09;
+				background: #F60;
 				color: white;
 				padding: 7px 12px;
 			}
@@ -1180,7 +1180,7 @@ p.note {
 }
 
 button.delete {
-  background-color: #F09;
+  background-color: #F60;
   color: white;
 }
 
@@ -1234,7 +1234,7 @@ button.delete {
 
 /* "loading" anim */
 #scanner {
-  color: #F09;
+  color: #F60;
   background-color: white;
   font-family: Arial, sans-serif;
 

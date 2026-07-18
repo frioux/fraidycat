@@ -524,7 +524,7 @@ const ListFollow = ({ match }) => {
         <div class="intro">
           <h3>Ready?</h3>
           <p>Let's get Scaredycat going, yeah?</p>
-          <p>Click the <Link to={addLink} class="pink" title="Add a Follow"><img src={new URL('../images/add.svg', import.meta.url)} width="16" /></Link> button to add someone!</p>
+          <p>Click the <Link to={addLink} class="orange" title="Add a Follow"><img src={new URL('../images/add.svg', import.meta.url)} width="16" /></Link> button to add someone!</p>
           <p>Or, click the <Link to="/settings" title="Settings"><img src={new URL('../images/gear.svg', import.meta.url)} width="16" /></Link> to import a bunch.</p>
           <p><em>Hey! Follows added to this <strong>Realtime</strong> page will highlight the tab when there are new posts!</em></p>
         </div>}
@@ -675,7 +675,7 @@ export const App = () => {
               </li> :
               (urgent && <li id="urgent"><p><a href="#" onclick={e => {
                 e.preventDefault(); urgent.approve()}}>{urgent.note}</a></p></li>)}
-            <li><Link to={addLink} class="pink" title="Add a Follow"><img src={new URL('../images/add.svg', import.meta.url)} width="16" /></Link></li>
+            <li><Link to={addLink} class="orange" title="Add a Follow"><img src={new URL('../images/add.svg', import.meta.url)} width="16" /></Link></li>
             <li><Link to="/settings" title="Settings"><img src={new URL('../images/gear.svg', import.meta.url)} width="16" /></Link></li>
           </ul>}
         </div>
