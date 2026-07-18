@@ -22,7 +22,7 @@ const normalizeUrl = require('normalize-url').default
 // `web-ext lint` flags in every bundle. he is dependency-free and works
 // without a DOM, which the service worker and the Node tests both need.
 const he = require('he')
-const jp = require('jsonpath/jsonpath.min.js')
+const jp = require('../jsonpath')
 const unkZones = require('./unkZones.js')
 
 module.exports = F
