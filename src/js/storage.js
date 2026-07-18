@@ -35,6 +35,18 @@ const ACTIVITY_IN_MAIN_INDEX = 180
 
 const rules = require('../../defs/social.json')
 
+// Feeds that a fresh install starts out following.
+const DEFAULT_FOLLOWS = [
+  'https://www.contemporaryartdaily.com/',
+  'https://blog.lostartpress.com/',
+  'https://biblioklept.org/',
+  'https://pbfcomics.com/',
+  'https://100r.ca/site/home.html',
+  'https://www.windytan.com/',
+  'https://thisisnthappiness.com/',
+  'https://seatsafetyswitch.com/'
+]
+
 function ConflictError(message) {
   this.message = message
   this.name = 'ConflictError'
@@ -170,6 +182,21 @@ module.exports = {
 
     await fetchScraper()
     this.sync(inc, SYNC_FULL)
+
+    //
+    // A fresh install - no local follows, nothing waiting in the sync -
+    // starts out with a few default follows. They run through sync just
+    // like an OPML import, so they are fetched and synced out normally.
+    //
+    if (Object.keys(this.all).length === 0 &&
+        Object.keys(inc.follows || {}).length === 0) {
+      let follows = {}
+      for (let url of DEFAULT_FOLLOWS)
+        follows[urlToID(urlToNormal(url, true))] =
+          {url, tags: null, importance: 0, editedAt: new Date()}
+      this.sync({follows}, SYNC_EXTERNAL)
+    }
+
     setTimeout(pollFn, pollFreq)
   },
 
