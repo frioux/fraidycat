@@ -54,6 +54,48 @@ test('escapeIllegal is idempotent', t => {
 })
 
 //
+// Unit tests for the inline-import-map stripper. Parcel injects an inline
+// <script type=importmap> into built HTML, which the MV3 extension CSP
+// (script-src 'self') blocks; the stripper removes it post-build after
+// verifying nothing natively imports the mapped ids.
+//
+const {
+  stripImportMaps,
+  findNativeImports,
+} = require('./scripts/strip-inline-importmap')
+
+test('stripImportMaps removes the inline import map and reports its ids', t => {
+  const html = '<!DOCTYPE html><html><script type=importmap>' +
+    '{"imports":{"3E6ZI":"/rec.b5e74cb5.svg","hhyme":"/fc.1afd2d79.png"}}' +
+    '</script><script type=module src=/fraidycat.js></script><body>'
+  const { html: out, ids } = stripImportMaps(html)
+  t.false(out.includes('importmap'))
+  t.true(out.includes('<script type=module src=/fraidycat.js>'), 'external scripts kept')
+  t.deepEqual(ids.sort(), ['3E6ZI', 'hhyme'])
+})
+
+test('stripImportMaps handles quoted type attributes and multiple maps', t => {
+  const html = '<script type="importmap">{"imports":{"a":"/a.js"}}</script>' +
+    '<p>x</p><script type=\'importmap\'>{"imports":{"b":"/b.js"}}</script>'
+  const { html: out, ids } = stripImportMaps(html)
+  t.is(out, '<p>x</p>')
+  t.deepEqual(ids.sort(), ['a', 'b'])
+})
+
+test('stripImportMaps leaves HTML without an import map untouched', t => {
+  const html = '<script src=/app.js type=module></script><body>hi</body>'
+  const { html: out, ids } = stripImportMaps(html)
+  t.is(out, html)
+  t.deepEqual(ids, [])
+})
+
+test('findNativeImports catches dynamic imports of mapped ids', t => {
+  t.deepEqual(findNativeImports('foo();import("3E6ZI").then(x)', ['3E6ZI', 'zzz']), ['3E6ZI'])
+  t.deepEqual(findNativeImports("import('hhyme')", ['hhyme']), ['hhyme'])
+  t.deepEqual(findNativeImports('import("./relative.js")', ['3E6ZI']), [])
+})
+
+//
 // Build-output validation. These run against build/webext when it exists (a
 // release build, or after `npm run webext`); they are skipped otherwise so a
 // plain `npm test` on a fresh checkout doesn't fail for lack of a build.
@@ -130,6 +172,17 @@ buildTest('content-script JS files exist and are Chrome-valid UTF-8', t => {
     t.true(fs.existsSync(full), `missing content script: ${rel}`)
     const bad = findIllegal(fs.readFileSync(full, 'utf8'))
     t.is(bad.length, 0, `${rel} has Chrome-illegal code units: ${JSON.stringify(bad.slice(0, 3))}`)
+  }
+})
+
+buildTest('no built HTML page contains an inline script (MV3 CSP forbids them)', t => {
+  const htmlFiles = fs.readdirSync(BUILD).filter(f => f.endsWith('.html'))
+  t.true(htmlFiles.length > 0, 'sanity: found built HTML pages')
+  for (const rel of htmlFiles) {
+    const html = fs.readFileSync(path.join(BUILD, rel), 'utf8')
+    for (const tag of html.match(/<script\b[^>]*>/gi) || []) {
+      t.regex(tag, /\bsrc=/, `${rel} has an inline script blocked by CSP: ${tag}`)
+    }
   }
 })
 

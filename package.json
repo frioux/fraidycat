@@ -17,7 +17,7 @@
     "dev": "cross-env STORAGE=mock parcel serve src/dev.html --target frontend --port 4321 --no-autoinstall",
     "lint": "oxlint src --deny-warnings",
     "test": "ava",
-    "webext": "fsbin emptyDir build/webext && cross-env STORAGE=webext parcel build --target webext --config @parcel/config-webextension --no-cache --no-source-maps --no-content-hash --no-autoinstall && node scripts/sanitize-webext-encoding.js && node scripts/make-firefox-webext.js",
+    "webext": "fsbin emptyDir build/webext && cross-env STORAGE=webext parcel build --target webext --config @parcel/config-webextension --no-cache --no-source-maps --no-content-hash --no-autoinstall && node scripts/sanitize-webext-encoding.js && node scripts/strip-inline-importmap.js && node scripts/make-firefox-webext.js",
     "webext:zip": "npm run webext && cd build/webext && zip -r -X ../scaredycat-chrome-$npm_package_version.zip . -x '.*'",
     "webext:lint": "web-ext lint --source-dir ./build/webext-firefox/"
   },
